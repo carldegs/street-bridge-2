@@ -32,6 +32,12 @@ export enum Team {
   horizontal,
 }
 
+export enum OverallPhase {
+  start = 'start',
+  setup = 'setup',
+  game = 'game',
+}
+
 export enum Phase {
   bidding = 'bidding',
   battle = 'battle',
@@ -78,4 +84,11 @@ export const HAND_SIZE = 13;
 export const MIN_CARD_VALUE = 2;
 export const MAX_CARD_VALUE = CardFace.ace;
 
-export type LobbyRole = `${Team}` | 'spectator';
+export const FIREBASE_COLLECTIONS = {
+  lobbies: 'lobbies',
+  chats: 'chats',
+  games: 'games',
+  players: 'players',
+};
+
+export type LobbyRole = Team | 'spectator';
