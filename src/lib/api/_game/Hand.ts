@@ -2,20 +2,21 @@ import { HAND_SIZE } from '../../../constants';
 import { Card } from './Card';
 
 class HandCard {
-  private _roundPlayed: number | undefined;
+  constructor(public card: Card, public roundPlayed: number = -1) {}
 
-  constructor(public card: Card) {}
-
-  public get isPlayed() {
-    return this.roundPlayed !== undefined;
+  public toObject() {
+    return {
+      card: this.card.toObject(),
+      roundPlayed: this.roundPlayed,
+    };
   }
 
-  public get roundPlayed(): number | undefined {
-    return this._roundPlayed;
+  public get isPlayed() {
+    return this.roundPlayed >= 0;
   }
 
   public playCard(roundPlayed: number) {
-    this._roundPlayed = roundPlayed;
+    this.roundPlayed = roundPlayed;
   }
 }
 
@@ -29,6 +30,10 @@ export class Hand {
 
     this.cards = cards.map((card) => new HandCard(card));
   }
+
+  public toObject = () => {
+    return this.cards.map((card) => card.toObject());
+  };
 
   public addCard(card: Card) {
     this.cards = [...this.cards, new HandCard(card)];

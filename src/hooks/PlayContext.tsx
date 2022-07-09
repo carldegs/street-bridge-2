@@ -11,11 +11,13 @@ const PlayContext = React.createContext<{
   isFetching: boolean;
   overallPhase?: OverallPhase;
   lobbyId?: string;
+  gameId?: string;
   fetch: (user: User) => void;
 }>({
   isFetching: false,
   overallPhase: undefined,
   lobbyId: '',
+  gameId: '',
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   fetch: () => {},
 });
@@ -24,6 +26,7 @@ const PlayProvider: RFCC = ({ children }) => {
   const [isFetching, setFetching] = useState(false);
   const [overallPhase, setOverallPhase] = useState<OverallPhase | undefined>();
   const [lobbyId, setLobbyId] = useState('');
+  const [gameId, setGameId] = useState('');
 
   const fetch = useCallback(async (user: User) => {
     if (!user?.uid) {
@@ -48,9 +51,16 @@ const PlayProvider: RFCC = ({ children }) => {
       return;
     }
 
-    setOverallPhase(OverallPhase.setup);
-    setFetching(false);
+    if (!lobby?.currGame) {
+      setOverallPhase(OverallPhase.setup);
+      setGameId('');
+    } else {
+      setOverallPhase(OverallPhase.game);
+      setGameId(lobby.currGame);
+    }
+
     setLobbyId(lobbyId);
+    setFetching(false);
 
     return {
       player,
@@ -63,9 +73,10 @@ const PlayProvider: RFCC = ({ children }) => {
       isFetching,
       overallPhase,
       lobbyId,
+      gameId,
       fetch,
     }),
-    [fetch, isFetching, lobbyId, overallPhase]
+    [fetch, gameId, isFetching, lobbyId, overallPhase]
   );
 
   return <PlayContext.Provider value={value}>{children}</PlayContext.Provider>;

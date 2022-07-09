@@ -51,7 +51,13 @@ const PlayRouterPage: React.FC = () => {
     return <LobbyPage />;
   }
 
-  return <SetupPage />;
+  if (overallPhase === OverallPhase.setup) {
+    return <SetupPage />;
+  }
+
+  if (overallPhase === OverallPhase.game) {
+    return <div>GAME</div>;
+  }
 };
 
 export default PlayRouterPage;

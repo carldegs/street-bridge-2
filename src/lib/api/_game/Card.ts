@@ -40,6 +40,13 @@ export class Card {
     this.suit = actualSuit;
   }
 
+  public toObject() {
+    return {
+      value: this.value,
+      suit: this.suit,
+    };
+  }
+
   public get valueLabel() {
     if (this.value >= CARD_FACES_START) {
       return CardFaceLabels[this.value];

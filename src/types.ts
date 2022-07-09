@@ -1,7 +1,7 @@
 import React, { PropsWithChildren } from 'react';
 
-import { BidSuit, PlayerPos, Team } from './constants';
-import { Card } from './lib/api/game/Card';
+import { BidSuit, LobbyRole, PlayerPos, Team } from './constants';
+import { Card } from './lib/api/_game/Card';
 
 export type WithChildren<T> = PropsWithChildren<T>;
 export type OmitChildren<T> = Omit<T, 'children'>;
@@ -13,7 +13,7 @@ export interface Bid {
 }
 
 export interface TurnMetadata {
-  playerName: string;
+  playerId: string;
   player: PlayerPos;
   teamName: string;
   team: Team;
@@ -30,3 +30,14 @@ export interface Play extends TurnMetadata {
 export interface RoundHistory extends TurnMetadata {
   plays: Play[];
 }
+
+export interface GameUser {
+  uid: string;
+  displayName: string;
+}
+
+export type LobbyMember = GameUser & {
+  role: LobbyRole;
+};
+
+export type Members = Record<string, LobbyMember>;

@@ -44,13 +44,20 @@ export class Deck {
     this.cards = [...cards];
   }
 
-  public distribute(): Hand[] {
-    return Array.from(Array(4)).map((_, i) => {
-      const handCards = [
-        ...this.cards.slice(i * HAND_SIZE, i * HAND_SIZE + HAND_SIZE),
-      ];
+  public distribute(): Record<number, Hand> {
+    return Array.from(Array(4))
+      .map((_, i) => {
+        const handCards = [
+          ...this.cards.slice(i * HAND_SIZE, i * HAND_SIZE + HAND_SIZE),
+        ];
 
-      return new Hand(handCards);
-    });
+        return new Hand(handCards);
+      })
+      .reduce((curr, prev, i) => {
+        return {
+          ...curr,
+          [i]: prev,
+        };
+      }, {});
   }
 }

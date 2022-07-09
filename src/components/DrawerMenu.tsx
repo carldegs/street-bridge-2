@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   ButtonProps,
   Divider,
@@ -67,23 +68,32 @@ const DrawerMenu: RFCC<DrawerMenuProps> = ({
           <DrawerContent>
             <DrawerCloseButton />
             {title && <DrawerHeader>{title}</DrawerHeader>}
-            <DrawerBody>
-              <Stack>
+            <DrawerBody mx={0} px={0}>
+              <Stack spacing={0}>
                 {filteredOptions?.map((option) => (
-                  <React.Fragment key={option.text}>
+                  <Box
+                    key={option.text}
+                    _hover={{
+                      bg: 'teal.50',
+                      color: 'teal.800',
+                    }}
+                    transition="250ms cubic-bezier(.29,.91,.32,.96)"
+                  >
                     <HStack
                       spacing={4}
-                      py={3}
+                      py={5}
+                      px={6}
                       onClick={() => {
                         option.onClick();
                         disc.onClose();
                       }}
+                      cursor="pointer"
                     >
                       <Icon fontSize="24px">{option.icon}</Icon>
                       <Text>{option.text}</Text>
                     </HStack>
-                    <Divider />
-                  </React.Fragment>
+                    <Divider my={0} />
+                  </Box>
                 ))}
               </Stack>
             </DrawerBody>

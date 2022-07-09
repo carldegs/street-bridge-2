@@ -10,8 +10,7 @@ import { StarFour, Sliders, UserMinus, Swap } from 'phosphor-react';
 import React from 'react';
 
 import DrawerMenu from '../../components/DrawerMenu';
-import { LobbyMember } from '../../lib/api/lobby/Lobby';
-import { RFCC } from '../../types';
+import { LobbyMember, RFCC } from '../../types';
 
 export const TeamCardList: RFCC<{
   colortheme?: ColorProps['color'];

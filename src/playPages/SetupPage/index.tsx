@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Center,
   Container,
   Flex,
@@ -19,11 +20,12 @@ import { Sliders, Backspace, Trash, StarFour } from 'phosphor-react';
 import React, { useEffect, useState } from 'react';
 
 import DrawerMenu from '../../components/DrawerMenu';
-import { Team } from '../../constants';
+import { Team, LobbyRole } from '../../constants';
 import ChangeHostModal from './ChangeHostModal';
 import DeleteRoomAlert from './DeleteRoomAlert';
 import EditTeamNameModal from './EditTeamNameModal';
 import LeaveRoomAlert from './LeaveRoomAlert';
+import MoveMemberModal from './MoveMemberModal';
 import TeamCard from './TeamCard';
 import TeamCardHeader from './TeamCardHeader';
 import TeamCardList from './TeamCardList';
@@ -46,6 +48,7 @@ const SetupPage: React.FC = () => {
     handleDeleteRoom,
     handleLeaveRoom,
     handleChangeTeamName,
+    handleCreateGame,
   } = useSetupPage();
   const [leftRoom, setLeftRoom] = useState(false);
   const deleteRoomAlertDisc = useDisclosure();
@@ -55,6 +58,12 @@ const SetupPage: React.FC = () => {
   const codeClipboard = useClipboard(lobby?.code);
   const changeTeamNameDisc = useDisclosure();
   const [nameChangeTeam, setNameChangeTeam] = useState(Team.vertical);
+  const moveMemberDisc = useDisclosure();
+  const [moveData, setMoveData] = useState<{ uid: string; role: LobbyRole }>({
+    uid: '',
+    role: 'spectator',
+  });
+  const [isCreating, setCreating] = useState(false);
 
   useEffect(() => {
     if (!isLoading && lobbyError) {
@@ -84,6 +93,12 @@ const SetupPage: React.FC = () => {
       }
     }
   }, [fetch, isLoading, leftRoom, lobby, toast, user, user.uid]);
+
+  useEffect(() => {
+    if (lobby?.currGame) {
+      fetch(user);
+    }
+  }, [fetch, lobby?.currGame, user]);
 
   if (!lobby) {
     return (
@@ -149,6 +164,14 @@ const SetupPage: React.FC = () => {
           {...changeTeamNameDisc}
         />
       )}
+      <MoveMemberModal
+        onClick={(uid, role) => {
+          handleMoveMember(uid, role);
+        }}
+        lobby={lobby}
+        userToMove={moveData.uid}
+        {...moveMemberDisc}
+      />
       <Flex
         alignItems="center"
         justifyContent="center"
@@ -238,6 +261,35 @@ const SetupPage: React.FC = () => {
               }}
             />
           </HStack>
+
+          {lobby.isHost(user.uid) && (
+            <Button
+              w="full"
+              colorScheme="green"
+              mb={6}
+              size="lg"
+              isDisabled={!lobby.isCompleteTeams()}
+              isLoading={isCreating}
+              onClick={async (e) => {
+                e.preventDefault();
+                try {
+                  setCreating(true);
+                  await handleCreateGame();
+                  setCreating(false);
+                } catch (err) {
+                  toast({
+                    status: 'error',
+                    title: 'Cannot create game',
+                    description: err?.message,
+                  });
+                }
+                fetch(user);
+              }}
+            >
+              START GAME
+            </Button>
+          )}
+
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
             <TeamCard colortheme="blue">
               <TeamCardHeader
@@ -259,7 +311,8 @@ const SetupPage: React.FC = () => {
                 hostUserId={lobby.host.uid}
                 onRemoveMember={handleRemoveMember}
                 onMoveMember={(uid) => {
-                  handleMoveMember(uid, 0);
+                  setMoveData({ uid, role: 0 });
+                  moveMemberDisc.onOpen();
                 }}
                 neededMembers={2}
               />
@@ -291,7 +344,8 @@ const SetupPage: React.FC = () => {
                 hostUserId={lobby.host.uid}
                 onRemoveMember={handleRemoveMember}
                 onMoveMember={(uid) => {
-                  handleMoveMember(uid, 1);
+                  setMoveData({ uid, role: 1 });
+                  moveMemberDisc.onOpen();
                 }}
                 neededMembers={2}
               />
@@ -311,7 +365,8 @@ const SetupPage: React.FC = () => {
                 hostUserId={lobby.host.uid}
                 onRemoveMember={handleRemoveMember}
                 onMoveMember={(uid) => {
-                  handleMoveMember(uid, 'spectator');
+                  setMoveData({ uid, role: 'spectator' });
+                  moveMemberDisc.onOpen();
                 }}
               />
               <TeamJoinButton

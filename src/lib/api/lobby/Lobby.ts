@@ -1,18 +1,8 @@
 import { DocumentData, DocumentReference } from 'firebase/firestore';
 
 import { LobbyRole, PlayerPos, Team } from '../../../constants';
-import { Game } from '../game/Game';
+import { GameUser, LobbyMember, Members } from '../../../types';
 
-interface User {
-  uid: string;
-  displayName: string;
-}
-
-export type LobbyMember = User & {
-  role: LobbyRole;
-};
-
-type Members = Record<string, LobbyMember>;
 const createPlayerListFromMembers = (members: Members) => {
   let vertPlayers = [];
   let horPlayers = [];
@@ -46,12 +36,12 @@ const createPlayerListFromMembers = (members: Members) => {
 class Lobby {
   constructor(
     private _name: string,
-    private _host: User,
+    private _host: GameUser,
     public code: string,
     public members?: Members,
     public teamNames: string[] = ['Team A', 'Team B'],
     public prevGames: string[] = [],
-    public currGame: DocumentReference<DocumentData> = undefined,
+    public currGame: string = '',
     public id: string = '',
     public ref: DocumentReference<DocumentData> = undefined
   ) {
@@ -76,11 +66,11 @@ class Lobby {
     this._name = value;
   }
 
-  public get host(): User {
+  public get host(): GameUser {
     return this._host;
   }
 
-  public set host(value: User) {
+  public set host(value: GameUser) {
     if (!this.members[value.uid]) {
       throw new Error(`User ${value.displayName} not a member`);
     }
@@ -104,7 +94,7 @@ class Lobby {
     this.name = name;
   }
 
-  public addMember(user: User, team: LobbyRole = 'spectator') {
+  public addMember(user: GameUser, team: LobbyRole = 'spectator') {
     this.members = {
       ...this.members,
       [user.uid]: {
@@ -179,15 +169,18 @@ class Lobby {
     this.teamNames[team] = name;
   }
 
-  public createGame() {
-    const players = createPlayerListFromMembers(this.members);
+  public getGameProps() {
+    return {
+      host: this.host,
+      players: createPlayerListFromMembers(this.members),
+      membersData: this.members,
+      teamNames: this.teamNames,
+      lobbyId: this.code,
+    };
+  }
 
-    const game = new Game(this.host.uid, players, this.teamNames);
-
-    // TODO: set ID
-    // this._currGame = 'id';
-
-    return game;
+  public setGame(gameId: string) {
+    this.currGame = gameId;
   }
 
   public getPlayerList(team: LobbyRole) {
@@ -204,6 +197,22 @@ class Lobby {
     }
 
     this.host = { ...newHost };
+  }
+
+  public getTeam(userId: string) {
+    if (!this.isMember(userId)) {
+      throw new Error(`User ${userId} not a member.`);
+    }
+
+    return this.members[userId].role;
+  }
+
+  public isCompleteTeams() {
+    const verticalTeam = this.getPlayerList(0);
+    const horizontalTeam = this.getPlayerList(1);
+    // const spectators = this.getPlayerList('spectator');
+
+    return verticalTeam.length === 2 && horizontalTeam.length === 2;
   }
 }
 

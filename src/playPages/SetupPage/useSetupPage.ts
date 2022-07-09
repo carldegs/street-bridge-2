@@ -1,4 +1,4 @@
-import { deleteDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useCallback, useMemo } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
@@ -6,6 +6,8 @@ import { useDocumentData } from 'react-firebase-hooks/firestore';
 import { LobbyRole, Team } from '../../constants';
 import { usePlay } from '../../hooks/PlayContext';
 import { auth } from '../../lib/api/firebase';
+import { Game } from '../../lib/api/game/Game';
+import { gameCollection } from '../../lib/api/game/firebaseRef';
 import Lobby from '../../lib/api/lobby/Lobby';
 import lobbyConverter from '../../lib/api/lobby/converter';
 import { lobbyDoc } from '../../lib/api/lobby/firebaseRef';
@@ -96,6 +98,19 @@ const useSetupPage = () => {
     [lobby, updateLobby]
   );
 
+  const handleCreateGame = useCallback(async () => {
+    const { host, players, membersData, teamNames, lobbyId } =
+      lobby.getGameProps();
+
+    const game = new Game(host, players, membersData, teamNames, lobbyId);
+
+    const { id: gameId } = await addDoc(gameCollection, game);
+
+    lobby.setGame(gameId);
+
+    await updateLobby(lobby);
+  }, [lobby, updateLobby]);
+
   return {
     user,
     isLoading,
@@ -109,6 +124,7 @@ const useSetupPage = () => {
     handleLeaveRoom,
     handleDeleteRoom,
     handleChangeTeamName,
+    handleCreateGame,
   };
 };
 

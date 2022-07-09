@@ -1,3 +1,5 @@
+import { DocumentData, DocumentReference } from 'firebase/firestore';
+
 import { PlayerPos, Phase, Team, BidSuit } from '../../../constants';
 import {
   BidHistory,
@@ -5,43 +7,41 @@ import {
   RoundHistory,
   TurnMetadata,
   Bid,
+  Members,
+  GameUser,
 } from '../../../types';
 import { getRandInt } from '../../../utils';
-import { Card } from './Card';
-import { Deck } from './Deck';
-import { Hand } from './Hand';
+import { Card } from '../_game/Card';
+import { Deck } from '../_game/Deck';
+import { Hand } from '../_game/Hand';
 
 export class Game {
-  public hands: Hand[];
-  private phase: Phase;
-  public currPlayer: PlayerPos;
-
-  private bid: BidHistory | undefined;
-  private bidHistory: BidHistory[];
-  private numPasses: number;
-
-  private round: number;
-  private plays: Play[];
-  private roundHistory: RoundHistory[];
-
   constructor(
-    public host: string,
+    public host: GameUser,
     public players: string[],
-    public teamNames: string[]
+    public membersData: Members,
+    public teamNames: string[],
+    public lobbyId: string,
+    public hands: Record<number, Hand> = {},
+    public phase: Phase = Phase.bidding,
+    public currPlayer?: PlayerPos,
+    public bid: BidHistory = null,
+    public bidHistory: BidHistory[] = [],
+    public numPasses: number = 0,
+    public round: number = 0,
+    public plays: Play[] = [],
+    public roundHistory: RoundHistory[] = [],
+    public id: string = '',
+    public ref: DocumentReference<DocumentData> = undefined
   ) {
-    const deck = new Deck();
-    deck.shuffle();
+    if (!Object.keys(hands)?.length) {
+      const deck = new Deck();
+      deck.shuffle();
 
-    this.hands = deck.distribute();
-    this.phase = Phase.bidding;
+      this.hands = deck.distribute();
+    }
+
     this.currPlayer = getRandInt(0, 3);
-
-    this.bidHistory = [];
-    this.numPasses = 0;
-
-    this.round = 0;
-    this.plays = [];
-    this.roundHistory = [];
   }
 
   public get currTeam() {
@@ -52,7 +52,7 @@ export class Game {
     return this.teamNames[this.currTeam];
   }
 
-  public get currPlayerName() {
+  public get currPlayerId() {
     return this.players[this.currPlayer];
   }
 
@@ -82,7 +82,7 @@ export class Game {
 
   public get turnMetadata(): TurnMetadata {
     return {
-      playerName: this.currPlayerName,
+      playerId: this.currPlayerId,
       player: this.currPlayer,
       teamName: this.currTeamName,
       team: this.currTeam,
@@ -173,7 +173,7 @@ export class Game {
         {
           plays: [...this.plays],
           player: winningPlayer,
-          playerName: this.players[winningPlayer],
+          playerId: this.players[winningPlayer],
           team: winningTeam,
           teamName: this.teamNames[winningTeam],
         },
