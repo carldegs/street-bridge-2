@@ -1,7 +1,7 @@
 import { HAND_SIZE } from '../../../constants';
 import { Card } from './Card';
 
-class HandCard {
+export class HandCard {
   constructor(public card: Card, public roundPlayed: number = -1) {}
 
   public toObject() {
@@ -23,12 +23,16 @@ class HandCard {
 export class Hand {
   public cards: HandCard[];
 
-  constructor(cards: Card[]) {
+  constructor(cards: Card[] | HandCard[]) {
     if (cards.length !== HAND_SIZE) {
       throw new Error('Invalid Hand Size');
     }
 
-    this.cards = cards.map((card) => new HandCard(card));
+    if ((cards[0] as HandCard).roundPlayed) {
+      this.cards = [...cards] as HandCard[];
+    } else {
+      this.cards = cards.map((card) => new HandCard(card));
+    }
   }
 
   public toObject = () => {

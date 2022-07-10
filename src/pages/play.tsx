@@ -7,6 +7,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { OverallPhase } from '../constants';
 import { usePlay } from '../hooks/PlayContext';
 import { auth } from '../lib/api/firebase';
+import GamePage from '../playPages/GamePage';
 import LobbyPage from '../playPages/LobbyPage';
 import SetupPage from '../playPages/SetupPage';
 
@@ -42,7 +43,7 @@ const PlayRouterPage: React.FC = () => {
   if (isFetching || !overallPhase) {
     return (
       <Center h="100vh">
-        <Spinner />
+        <Spinner size="xl" />
       </Center>
     );
   }
@@ -56,7 +57,7 @@ const PlayRouterPage: React.FC = () => {
   }
 
   if (overallPhase === OverallPhase.game) {
-    return <div>GAME</div>;
+    return <GamePage />;
   }
 };
 

@@ -4,6 +4,8 @@ import { useAuthState, useUpdateProfile } from 'react-firebase-hooks/auth';
 
 import { usePlay } from '../../hooks/PlayContext';
 import { auth } from '../../lib/api/firebase';
+import gameConverter from '../../lib/api/game/converter';
+import { gameDoc } from '../../lib/api/game/firebaseRef';
 import Lobby from '../../lib/api/lobby/Lobby';
 import lobbyConverter from '../../lib/api/lobby/converter';
 import { lobbyDoc } from '../../lib/api/lobby/firebaseRef';
@@ -71,6 +73,24 @@ const useLobbyPage = () => {
       }
 
       await updateDoc(lobbyDoc(code), lobbyConverter.toFirestore(lobby));
+
+      if (lobby.currGame) {
+        const gameSnap = await getDoc(gameDoc(lobby.currGame));
+
+        if (!gameSnap.exists()) {
+          // TODO: Undo all changes
+          throw new Error(`Game ${lobby.currGame} not found`);
+        }
+
+        const game = gameSnap.data();
+
+        game.addMember({ uid: user.uid, displayName: hostName });
+
+        await updateDoc(
+          gameDoc(lobby.currGame),
+          gameConverter.toFirestore(game)
+        );
+      }
 
       await setPlayerLobby(code);
     },

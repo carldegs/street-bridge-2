@@ -11,7 +11,6 @@ import {
   SimpleGrid,
   Spacer,
   Spinner,
-  Text,
   useClipboard,
   useDisclosure,
   useToast,
@@ -19,10 +18,12 @@ import {
 import { Sliders, Backspace, Trash, StarFour } from 'phosphor-react';
 import React, { useEffect, useState } from 'react';
 
+import DeleteRoomAlert from '../../components/DeleteRoomAlert';
 import DrawerMenu from '../../components/DrawerMenu';
-import { Team, LobbyRole } from '../../constants';
+import { LobbyCodeCard } from '../../components/LobbyCodeCard';
+import { Team, LobbyRole, TEAM_COLORS } from '../../constants';
+import useCustomColorMode from '../../hooks/useCustomColorMode';
 import ChangeHostModal from './ChangeHostModal';
-import DeleteRoomAlert from './DeleteRoomAlert';
 import EditTeamNameModal from './EditTeamNameModal';
 import LeaveRoomAlert from './LeaveRoomAlert';
 import MoveMemberModal from './MoveMemberModal';
@@ -64,6 +65,7 @@ const SetupPage: React.FC = () => {
     role: 'spectator',
   });
   const [isCreating, setCreating] = useState(false);
+  const colorMode = useCustomColorMode();
 
   useEffect(() => {
     if (!isLoading && lobbyError) {
@@ -103,7 +105,7 @@ const SetupPage: React.FC = () => {
   if (!lobby) {
     return (
       <Center w="full" h="100vh">
-        <Spinner />
+        <Spinner size="xl" />
       </Center>
     );
   }
@@ -188,43 +190,13 @@ const SetupPage: React.FC = () => {
           {user.displayName}
         </Heading>
       </Flex>
-      {isLoading && <Spinner />}
+      {isLoading && <Spinner size="xl" />}
       {lobby && (
         <Container maxW="container.md" flexDir="column" pt={8}>
           <HStack mb={8}>
             <Heading fontSize={{ base: '2xl', md: '3xl' }}>Setup Game</Heading>
             <Spacer />
-            <Box
-              bg="gray.200"
-              px={4}
-              py={3}
-              borderRadius="lg"
-              onClick={codeClipboard.onCopy}
-              cursor="pointer"
-              w="min-content"
-              transition="250ms cubic-bezier(.29,.91,.32,.96)"
-              _hover={{
-                bg: 'teal.300',
-                transform: 'scale(1.04)',
-              }}
-            >
-              <Text
-                textAlign="center"
-                fontSize={{ base: 'xs', md: 'sm' }}
-                letterSpacing="widest"
-                mb={-1}
-              >
-                ROOM CODE
-              </Text>
-              <HStack>
-                <Text fontSize={{ base: 'lg', md: '2xl' }} fontWeight="bold">
-                  {lobby.name.substring(0, 4)}
-                </Text>
-                <Text fontSize={{ base: 'lg', md: '2xl' }} fontWeight="bold">
-                  {lobby.name.substring(4, 8)}
-                </Text>
-              </HStack>
-            </Box>
+            <LobbyCodeCard onClick={codeClipboard.onCopy} code={lobby.code} />
             <Box w={{ base: 0, md: 2 }} />
             <DrawerMenu
               title="Options"
@@ -246,6 +218,11 @@ const SetupPage: React.FC = () => {
                   icon: <StarFour />,
                   onClick: changeHostDisc.onOpen,
                   hidden: lobby.host.uid !== user.uid,
+                },
+                {
+                  text: colorMode.tooltip,
+                  icon: <colorMode.Icon />,
+                  onClick: colorMode.toggle,
                 },
               ]}
               buttonContent={
@@ -291,7 +268,7 @@ const SetupPage: React.FC = () => {
           )}
 
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-            <TeamCard colortheme="blue">
+            <TeamCard colortheme={TEAM_COLORS[0]}>
               <TeamCardHeader
                 // TODO: Make it cleaner
                 onClick={
@@ -318,13 +295,13 @@ const SetupPage: React.FC = () => {
               />
               <Spacer />
               <TeamJoinButton
-                colorScheme="blue"
+                colorScheme={TEAM_COLORS[0]}
                 onClick={changeTeam}
                 team={0}
                 userTeam={lobby.members[user.uid]?.role}
               />
             </TeamCard>
-            <TeamCard colortheme="red">
+            <TeamCard colortheme={TEAM_COLORS[1]}>
               <TeamCardHeader
                 // TODO: Make it cleaner
                 onClick={
@@ -351,13 +328,13 @@ const SetupPage: React.FC = () => {
               />
               <Spacer />
               <TeamJoinButton
-                colorScheme="red"
+                colorScheme={TEAM_COLORS[1]}
                 onClick={changeTeam}
                 team={1}
                 userTeam={lobby.members[user.uid]?.role}
               />
             </TeamCard>
-            <TeamCard colortheme="teal" gridColumn="1 / -1">
+            <TeamCard colortheme={TEAM_COLORS.spectator} gridColumn="1 / -1">
               <TeamCardHeader>Spectators</TeamCardHeader>
               <TeamCardList
                 members={lobby.getPlayerList('spectator')}
@@ -370,7 +347,7 @@ const SetupPage: React.FC = () => {
                 }}
               />
               <TeamJoinButton
-                colorScheme="teal"
+                colorScheme={TEAM_COLORS.spectator}
                 onClick={changeTeam}
                 team="spectator"
                 userTeam={lobby.members[user.uid]?.role}

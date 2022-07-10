@@ -7,7 +7,7 @@ import { LobbyRole, Team } from '../../constants';
 import { usePlay } from '../../hooks/PlayContext';
 import { auth } from '../../lib/api/firebase';
 import { Game } from '../../lib/api/game/Game';
-import { gameCollection } from '../../lib/api/game/firebaseRef';
+import { gameCollection, gameDoc } from '../../lib/api/game/firebaseRef';
 import Lobby from '../../lib/api/lobby/Lobby';
 import lobbyConverter from '../../lib/api/lobby/converter';
 import { lobbyDoc } from '../../lib/api/lobby/firebaseRef';
@@ -83,6 +83,12 @@ const useSetupPage = () => {
     await Promise.all(
       lobby.memberIdList.map(async (memberId) => {
         await updateDoc(playerDoc(memberId), { lobby: '' });
+      })
+    );
+
+    await Promise.all(
+      lobby.prevGames.map(async (gameId) => {
+        await deleteDoc(gameDoc(gameId));
       })
     );
 

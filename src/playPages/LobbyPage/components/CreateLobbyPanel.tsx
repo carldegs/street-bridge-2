@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 
 import QFormControl from '../../../components/QFormControl';
+import useCustomColorMode from '../../../hooks/useCustomColorMode';
 import useJoiForm from '../../../hooks/useJoiForm';
 import { createRoomFormObject } from '../formObjects';
 import useLobbyPage from '../useLobbyPage';
@@ -14,9 +15,17 @@ const CreateLobbyPanel: React.FC = () => {
     name: user?.displayName || '',
   });
   const [isLoading, setLoading] = useState(false);
+  const colorMode = useCustomColorMode();
 
   return (
-    <Box bg="white" py={6} px={10} borderRadius="lg" w="full" maxW="400px">
+    <Box
+      bg={colorMode.isDark ? 'gray.900' : 'white'}
+      py={6}
+      px={10}
+      borderRadius="lg"
+      w="full"
+      maxW="400px"
+    >
       <Heading mb={8} fontSize="xl">
         Create New Room
       </Heading>

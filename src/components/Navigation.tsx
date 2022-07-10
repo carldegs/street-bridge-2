@@ -40,7 +40,7 @@ const Navigation: React.FC = () => {
       <Divider orientation="vertical" h={NAVBAR_HEIGHT} />
       {authLoading ? (
         <Box w="15px">
-          <Spinner />
+          <Spinner size="xl" />
         </Box>
       ) : !user?.displayName ? (
         <Button

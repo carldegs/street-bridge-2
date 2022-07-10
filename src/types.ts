@@ -41,3 +41,5 @@ export type LobbyMember = GameUser & {
 };
 
 export type Members = Record<string, LobbyMember>;
+
+export type SortOrder = '' | 'asc' | 'desc';

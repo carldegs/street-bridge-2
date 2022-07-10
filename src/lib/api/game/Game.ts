@@ -16,15 +16,22 @@ import { Deck } from '../_game/Deck';
 import { Hand } from '../_game/Hand';
 
 export class Game {
+  public get players(): string[] {
+    return [...this._players];
+  }
+  public set players(value: string[]) {
+    this._players = value;
+  }
+
   constructor(
     public host: GameUser,
-    public players: string[],
+    private _players: string[],
     public membersData: Members,
     public teamNames: string[],
     public lobbyId: string,
     public hands: Record<number, Hand> = {},
     public phase: Phase = Phase.bidding,
-    public currPlayer?: PlayerPos,
+    public currPlayer: PlayerPos = getRandInt(0, 3),
     public bid: BidHistory = null,
     public bidHistory: BidHistory[] = [],
     public numPasses: number = 0,
@@ -40,8 +47,6 @@ export class Game {
 
       this.hands = deck.distribute();
     }
-
-    this.currPlayer = getRandInt(0, 3);
   }
 
   public get currTeam() {
@@ -87,6 +92,36 @@ export class Game {
       teamName: this.currTeamName,
       team: this.currTeam,
     };
+  }
+
+  public getPlayerPos(userId: string) {
+    return this.players.indexOf(userId);
+  }
+
+  public getMemberData(userId: string) {
+    if (!this.isMember(userId)) {
+      throw new Error('User not a member');
+    }
+
+    return { ...this.membersData[userId] };
+  }
+
+  public getMemberName(userId: string) {
+    if (!this.isMember(userId)) {
+      throw new Error('User not a member');
+    }
+
+    return this.membersData[userId]?.displayName;
+  }
+
+  public getMemberRoleName(userId: string) {
+    const team = this.getMemberData(userId).role;
+
+    if (team !== 'spectator') {
+      return this.teamNames[team];
+    }
+
+    return 'Spectator';
   }
 
   public setBid(player: PlayerPos, bid: Bid | 'pass') {
@@ -205,6 +240,14 @@ export class Game {
     }
   }
 
+  public isMember(userId: string) {
+    return !!this.membersData?.[userId];
+  }
+
+  public isPlayer(userId: string) {
+    return this.players.indexOf(userId) >= 0;
+  }
+
   private isCurrPlayer(player: PlayerPos) {
     if (player !== this.currPlayer) {
       throw new Error('Player cannot bid. Not their turn.');
@@ -229,5 +272,31 @@ export class Game {
     return [PlayerPos.north, PlayerPos.south].includes(player)
       ? Team.vertical
       : Team.horizontal;
+  }
+
+  public getPlayerHand(userId: string) {
+    const playerPos = this.getPlayerPos(userId);
+
+    if (playerPos < 0) {
+      throw new Error('Not a player');
+    }
+
+    return this.hands[playerPos];
+  }
+
+  public addMember(user: GameUser) {
+    this.membersData = {
+      ...this.membersData,
+      [user.uid]: {
+        ...user,
+        role: 'spectator',
+      },
+    };
+
+    return this.membersData;
+  }
+
+  public cancelGame() {
+    this.phase = Phase.cancelled;
   }
 }

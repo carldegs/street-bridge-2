@@ -214,6 +214,11 @@ class Lobby {
 
     return verticalTeam.length === 2 && horizontalTeam.length === 2;
   }
+
+  public cancelCurrGame() {
+    this.prevGames = [...this.prevGames, this.currGame];
+    this.currGame = '';
+  }
 }
 
 export default Lobby;
