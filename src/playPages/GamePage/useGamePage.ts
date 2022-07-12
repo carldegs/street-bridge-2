@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 
+import { PlayerPos } from '../../constants';
 import { usePlay } from '../../hooks/PlayContext';
 import { auth } from '../../lib/api/firebase';
 import { Game } from '../../lib/api/game/Game';
@@ -10,6 +11,7 @@ import gameConverter from '../../lib/api/game/converter';
 import { gameDoc } from '../../lib/api/game/firebaseRef';
 import lobbyConverter from '../../lib/api/lobby/converter';
 import { lobbyDoc } from '../../lib/api/lobby/firebaseRef';
+import { Bid } from '../../types';
 
 const useGamePage = () => {
   const [user, isLoadingUser] = useAuthState(auth);
@@ -42,6 +44,15 @@ const useGamePage = () => {
     await updateGame(game);
   }, [game, updateGame]);
 
+  const handleBid = useCallback(
+    async (bid: Bid | 'pass', player?: PlayerPos) => {
+      game.setBid(bid, player);
+
+      await updateGame(game);
+    },
+    [game, updateGame]
+  );
+
   return {
     user,
     fetch,
@@ -50,6 +61,7 @@ const useGamePage = () => {
     isLoading,
     gameError,
     handleEndGame,
+    handleBid,
   };
 };
 

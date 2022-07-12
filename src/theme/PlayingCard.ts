@@ -76,7 +76,7 @@ const PlayingCard: ComponentMultiStyleConfig = {
   sizes: {
     md: {
       card: {
-        ...getCardWidthHeight(42),
+        ...getCardWidthHeight(41),
         p: 2,
       },
       value: {

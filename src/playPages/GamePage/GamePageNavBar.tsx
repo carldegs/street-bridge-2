@@ -7,12 +7,14 @@ interface Props {
   roleId: LobbyRole;
   teamName: string;
   displayName: string;
+  isCurrPlayer?: boolean;
 }
 
 export const GamePageNavBar: React.FC<Props> = ({
   roleId,
   teamName,
   displayName,
+  isCurrPlayer,
 }) => {
   return (
     <Flex
@@ -22,6 +24,8 @@ export const GamePageNavBar: React.FC<Props> = ({
       bg={`${TEAM_COLORS[roleId]}.500`}
       py={2}
       px={6}
+      opacity={isCurrPlayer ? 1 : 0.5}
+      transition="250ms cubic-bezier(.29,.91,.32,.96)"
     >
       <Heading fontSize="md" color={`${TEAM_COLORS[roleId]}.50`}>
         STREET BRIDGE

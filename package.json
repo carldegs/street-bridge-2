@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "gen:theme-typings": "chakra-cli tokens src/theme.ts",
+    "gen:theme-typings": "chakra-cli tokens src/theme/index.ts",
     "postinstall": "yarn gen:theme-typings",
     "check-types": "tsc --pretty --noEmit",
     "check-format": "prettier --check ./src/**",

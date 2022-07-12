@@ -1,6 +1,12 @@
 import { DocumentData, DocumentReference } from 'firebase/firestore';
 
-import { PlayerPos, Phase, Team, BidSuit } from '../../../constants';
+import {
+  PlayerPos,
+  Phase,
+  Team,
+  BidSuit,
+  TEAM_COLORS,
+} from '../../../constants';
 import {
   BidHistory,
   Play,
@@ -62,12 +68,27 @@ export class Game {
   }
 
   public get tricksNeeded() {
-    const winningBidTricksNeeded = 6 + this.bid.bid.value;
-    const losingBidTricksNeeded = 8 - this.bid.bid.value;
+    if (!this.bid) {
+      return [7, 7];
+    }
+
+    const { neededByLoser, neededByWinner } = this.computeTricksNeeded(
+      this.bid.bid.value
+    );
 
     return this.bid.team === Team.vertical
-      ? [winningBidTricksNeeded, losingBidTricksNeeded]
-      : [losingBidTricksNeeded, winningBidTricksNeeded];
+      ? [neededByWinner, neededByLoser]
+      : [neededByLoser, neededByWinner];
+  }
+
+  public computeTricksNeeded(bidValue: number) {
+    const neededByWinner = 6 + bidValue;
+    const neededByLoser = 8 - bidValue;
+
+    return {
+      neededByWinner,
+      neededByLoser,
+    };
   }
 
   public get scores() {
@@ -124,7 +145,7 @@ export class Game {
     return 'Spectator';
   }
 
-  public setBid(player: PlayerPos, bid: Bid | 'pass') {
+  public setBid(bid: Bid | 'pass', player: PlayerPos = this.currPlayer) {
     this.isCorrectPhase(Phase.bidding);
     this.isCurrPlayer(player);
 
@@ -133,14 +154,12 @@ export class Game {
         throw new Error('First player cannot pass.');
       }
 
-      this.numPasses += 1;
       this.bidHistory = [...this.bidHistory, { ...this.turnMetadata }];
     } else {
       if (!this.isValidBid(bid)) {
         throw new Error('Bid must be higher than current bid.');
       }
 
-      this.numPasses = 0;
       this.bid = {
         bid,
         ...this.turnMetadata,
@@ -148,8 +167,9 @@ export class Game {
       this.bidHistory = [...this.bidHistory, this.bid];
     }
 
-    if (this.numPasses >= 3) {
+    if (this.bidHistory.filter(({ bid }) => !bid?.value).length >= 3) {
       this.phase = Phase.battle;
+      this.moveCurrPlayer();
     }
 
     this.moveCurrPlayer();
@@ -232,6 +252,20 @@ export class Game {
 
   private moveCurrPlayer() {
     this.currPlayer = (this.currPlayer + 1) % 4;
+
+    if (this.phase === Phase.bidding) {
+      let loop = 0;
+      while (loop < 4) {
+        if (this.getPlayerBidData(this.currPlayerId).isPass) {
+          this.currPlayer = (this.currPlayer + 1) % 4;
+          loop++;
+        } else {
+          return;
+        }
+      }
+
+      throw new Error('All players already passed');
+    }
   }
 
   private isCorrectPhase(phase: Phase) {
@@ -268,6 +302,21 @@ export class Game {
     return bidWithinRange && bidIsGreater;
   }
 
+  public getMinimumBid(): Bid {
+    if (!this.bid?.bid) {
+      return {
+        suit: BidSuit.club,
+        value: 1,
+      };
+    }
+
+    const isMaxBidForValue = this.bid.bid.suit === BidSuit.noTrump;
+    return {
+      suit: isMaxBidForValue ? BidSuit.club : this.bid.bid.suit + 1,
+      value: isMaxBidForValue ? this.bid.bid.value + 1 : this.bid.bid.value,
+    };
+  }
+
   private getTeam(player: PlayerPos) {
     return [PlayerPos.north, PlayerPos.south].includes(player)
       ? Team.vertical
@@ -298,5 +347,36 @@ export class Game {
 
   public cancelGame() {
     this.phase = Phase.cancelled;
+  }
+
+  public getPlayerPublicData(id: string = this.currPlayerId) {
+    const memberData = this.membersData[id];
+
+    return {
+      ...memberData,
+      teamName:
+        memberData.role === 'spectator'
+          ? 'Spectators'
+          : this.teamNames[memberData.role],
+      teamColor: TEAM_COLORS[memberData.role],
+    };
+  }
+
+  public getPlayerBidData(id: string = this.currPlayerId) {
+    const bids = this.bidHistory
+      .filter(({ playerId }) => id === playerId)
+      .map(({ bid }) => bid || 'pass');
+
+    return {
+      ...this.getPlayerPublicData(id),
+      isCurrPlayer: this.currPlayerId === id,
+      bids,
+      lastBid: bids?.length ? bids[bids.length - 1] : undefined,
+      isPass: bids.findIndex((bid) => bid === 'pass') >= 0,
+    };
+  }
+
+  public getPlayersBidData() {
+    return this.players.map((id: string) => this.getPlayerBidData(id));
   }
 }

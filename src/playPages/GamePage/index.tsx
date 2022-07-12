@@ -13,6 +13,7 @@ import {
   Container,
   useDisclosure,
   Spinner,
+  Heading,
 } from '@chakra-ui/react';
 import {
   ArrowFatDown,
@@ -21,14 +22,17 @@ import {
   HandPalm,
   SortAscending,
   SortDescending,
+  Strategy,
   UsersThree,
 } from 'phosphor-react';
 import React, { useEffect, useMemo } from 'react';
 
 import DrawerMenu from '../../components/DrawerMenu';
 import { LobbyCodeCard } from '../../components/LobbyCodeCard';
-import { AUTO_LOOP, Phase, TEAM_COLORS } from '../../constants';
+import { AUTO_LOOP, Phase } from '../../constants';
 import useCustomColorMode from '../../hooks/useCustomColorMode';
+import { BidChat } from './BidChat';
+import BidsModal from './BidsModal';
 import EndGameAlert from './EndGameAlert';
 import { GamePageNavBar } from './GamePageNavBar';
 import { HandSelectionMenu } from './HandSelectionMenu';
@@ -39,13 +43,14 @@ import useHand from './useHand';
 
 const GamePage: React.FC = () => {
   const toast = useToast();
-  const { game, isLoading, gameError, user, fetch, handleEndGame } =
+  const { game, isLoading, gameError, user, fetch, handleEndGame, handleBid } =
     useGamePage();
   const colorMode = useCustomColorMode();
 
   const codeClipboard = useClipboard(game?.lobbyId);
   const playerListModalDisc = useDisclosure();
   const endGameAlertDisc = useDisclosure();
+  const bidsModalDisc = useDisclosure();
 
   const {
     isSpectator,
@@ -69,6 +74,12 @@ const GamePage: React.FC = () => {
         onClick: playerListModalDisc.onOpen,
       },
       {
+        text: 'View Bids',
+        icon: <Strategy size="100%" weight="fill" />,
+        hidden: game?.phase !== Phase.battle,
+        onClick: bidsModalDisc.onOpen,
+      },
+      {
         text: colorMode.tooltip,
         icon: <colorMode.Icon weight="fill" />,
         onClick: colorMode.toggle,
@@ -81,9 +92,11 @@ const GamePage: React.FC = () => {
       },
     ],
     [
+      bidsModalDisc.onOpen,
       colorMode,
       endGameAlertDisc.onOpen,
       game?.host?.uid,
+      game?.phase,
       playerListModalDisc.onOpen,
       user?.uid,
     ]
@@ -150,35 +163,40 @@ const GamePage: React.FC = () => {
         }}
         {...endGameAlertDisc}
       />
+      <BidsModal game={game} {...bidsModalDisc} />
       <Box
         w="full"
         h="100vh"
         flexDir="column"
         pos="relative"
         bg={!colorMode.isDark && 'gray.100'}
-        overflow="hidden"
+        overflow="auto"
       >
         <GamePageNavBar
           roleId={game.getMemberData(user.uid).role}
           teamName={game.getMemberRoleName(user.uid)}
           displayName={user.displayName}
+          isCurrPlayer={user.uid === game.currPlayerId}
         />
         <Container mt={4} maxW="container.xl" centerContent>
           <SimpleGrid columns={3} w="full">
             <LobbyCodeCard onClick={codeClipboard.onCopy} code={game.lobbyId} />
-            <Flex></Flex>
+            <Flex align="center" justify="center" textAlign="center">
+              {game.phase === Phase.bidding && (
+                <Heading fontSize="2xl">BID PHASE</Heading>
+              )}
+              {game.phase === Phase.battle && (
+                <Heading fontSize="2xl">GAME PHASE</Heading>
+              )}
+            </Flex>
             <Box
-              bg={`${
-                TEAM_COLORS[game.getMemberData(game.currPlayerId).role]
-              }.200`}
-              color={`${
-                TEAM_COLORS[game.getMemberData(game.currPlayerId).role]
-              }.800`}
+              bg={`${game.getPlayerPublicData().teamColor}.200`}
+              color={`${game.getPlayerPublicData().teamColor}.800`}
               px={4}
               py={3}
               borderRadius="lg"
               w="fit-content"
-              minW={{ base: '130px', md: '160px' }}
+              minW={{ base: 'auto', md: '160px' }}
               ml="auto"
             >
               <Text
@@ -204,9 +222,15 @@ const GamePage: React.FC = () => {
               </Text>
             </Box>
           </SimpleGrid>
-          <Text>{}</Text>
+          {game.phase === Phase.bidding && (
+            <BidChat
+              game={game}
+              onClick={handleBid}
+              maxH={game.currPlayerId === user.uid ? '30vh' : '50vh'}
+            />
+          )}
         </Container>
-        <Stack w="full" pos="absolute" bottom={0}>
+        <Stack w="full" pos="fixed" bottom={0}>
           <PlayingCardHand cards={playerCards} hide={!showHand} />
           <SimpleGrid
             columns={{ base: 2, md: 3 }}
