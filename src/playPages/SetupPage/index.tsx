@@ -11,7 +11,6 @@ import {
   SimpleGrid,
   Spacer,
   Spinner,
-  useClipboard,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
@@ -56,7 +55,6 @@ const SetupPage: React.FC = () => {
   const leaveRoomAlertDisc = useDisclosure();
   const changeHostDisc = useDisclosure();
   const changeHostLeaveDisc = useDisclosure();
-  const codeClipboard = useClipboard(lobby?.code);
   const changeTeamNameDisc = useDisclosure();
   const [nameChangeTeam, setNameChangeTeam] = useState(Team.vertical);
   const moveMemberDisc = useDisclosure();
@@ -196,7 +194,7 @@ const SetupPage: React.FC = () => {
           <HStack mb={8}>
             <Heading fontSize={{ base: '2xl', md: '3xl' }}>Setup Game</Heading>
             <Spacer />
-            <LobbyCodeCard onClick={codeClipboard.onCopy} code={lobby.code} />
+            <LobbyCodeCard code={lobby.code} />
             <Box w={{ base: 0, md: 2 }} />
             <DrawerMenu
               title="Options"

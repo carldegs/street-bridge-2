@@ -11,6 +11,15 @@ export class Card {
   public value: number;
   public suit: CardSuit;
 
+  static parseId(id: string) {
+    const [value, suit] = id.split('-');
+
+    return {
+      value: +value,
+      suit: +suit,
+    };
+  }
+
   constructor(value: number, suit: CardSuit);
   constructor(id: string);
   constructor(valueOrId: number | string, suit?: CardSuit) {
@@ -18,7 +27,7 @@ export class Card {
     let actualSuit: CardSuit;
 
     if (typeof valueOrId === 'string') {
-      const parsedId = this.parseId(valueOrId);
+      const parsedId = Card.parseId(valueOrId);
       actualValue = parsedId.value;
       actualSuit = +parsedId.suit;
     } else if (typeof valueOrId === 'number' && !!suit) {
@@ -65,14 +74,5 @@ export class Card {
 
   public get id() {
     return `${this.value}-${this.suit}`;
-  }
-
-  private parseId(id: string) {
-    const [value, suit] = id.split('-');
-
-    return {
-      value: +value,
-      suit: CardSuit[suit],
-    };
   }
 }

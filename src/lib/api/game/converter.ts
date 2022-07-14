@@ -2,7 +2,7 @@ import { CardSuit } from '../../../constants';
 import { createConverter } from '../../../utils';
 import { Card } from '../_game/Card';
 import { Hand, HandCard } from '../_game/Hand';
-import { Game } from './Game';
+import { Game, Play, Round } from './Game';
 
 const gameConverter = createConverter<Game>(
   ({
@@ -11,7 +11,7 @@ const gameConverter = createConverter<Game>(
     membersData,
     teamNames,
     lobbyId,
-    hands = [],
+    hands = {},
     phase,
     currPlayer,
     bid,
@@ -36,8 +36,8 @@ const gameConverter = createConverter<Game>(
       bidHistory,
       numPasses,
       round,
-      plays,
-      roundHistory,
+      plays: plays.map((play) => play.toObject()),
+      roundHistory: roundHistory.map((round) => round.toObject()),
     };
   },
   (snapshot, options) => {
@@ -92,8 +92,8 @@ const gameConverter = createConverter<Game>(
       bidHistory,
       numPasses,
       round,
-      plays,
-      roundHistory,
+      plays.map((play) => new Play(play)),
+      roundHistory.map((round) => new Round(round)),
       id,
       ref
     );

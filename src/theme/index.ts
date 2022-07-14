@@ -1,6 +1,6 @@
 import { extendTheme } from '@chakra-ui/react';
 
-import PlayingCard from './PlayingCard';
+import { CardMini, PlayingCard } from './PlayingCard';
 import config from './config';
 
 const theme = extendTheme({
@@ -14,6 +14,7 @@ const theme = extendTheme({
   },
   components: {
     PlayingCard,
+    CardMini,
   },
 });
 

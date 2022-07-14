@@ -22,9 +22,9 @@ const useHand = (game?: Game, user?: User) => {
     return !game.isPlayer(user.uid);
   }, [game, user]);
 
-  const playerCards = useMemo(() => {
+  const userId = useMemo(() => {
     if (!game || !user) {
-      return [];
+      return '';
     }
 
     let userId = user.uid;
@@ -32,7 +32,17 @@ const useHand = (game?: Game, user?: User) => {
       userId = selectedUser === AUTO_LOOP ? game.currPlayerId : selectedUser;
     }
 
-    let cards = game.getPlayerHand(userId).cards?.map(({ card }) => card);
+    return userId;
+  }, [game, isSpectator, selectedUser, user]);
+
+  const playerCards = useMemo(() => {
+    if (!game || !user) {
+      return [];
+    }
+
+    let cards = game
+      .getPlayerHand(userId)
+      .availableCards?.map((card) => card.card);
 
     if (sort) {
       cards = cards.sort((cardA, cardB) => {
@@ -52,7 +62,17 @@ const useHand = (game?: Game, user?: User) => {
     }
 
     return cards;
-  }, [filter, game, isSpectator, selectedUser, sort, user]);
+  }, [filter, game, userId, sort, user]);
+
+  const disableHand = useMemo(
+    () => (!userId ? true : userId !== game?.currPlayerId),
+    [game?.currPlayerId, userId]
+  );
+
+  const disableSuits = useMemo(
+    () => game && game.getPlayerRestrictedSuits(userId),
+    [game, userId]
+  );
 
   const handleSort = useCallback(() => {
     setSort((s) => {
@@ -92,6 +112,8 @@ const useHand = (game?: Game, user?: User) => {
     isSpectator,
     playerCards,
     showHand,
+    disableHand,
+    disableSuits,
     FilterIcon,
     sort,
     handleSort,

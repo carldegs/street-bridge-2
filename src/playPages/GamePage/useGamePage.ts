@@ -1,5 +1,5 @@
 import { getDoc, updateDoc } from 'firebase/firestore';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 
@@ -22,6 +22,7 @@ const useGamePage = () => {
     () => isLoadingUser || isLoadingGame,
     [isLoadingGame, isLoadingUser]
   );
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const updateGame = useCallback(
     async (game: Game) => updateDoc(docQuery, gameConverter.toFirestore(game)),
@@ -53,15 +54,40 @@ const useGamePage = () => {
     [game, updateGame]
   );
 
+  // TODO: Possible issue when one who called handlePlayCard closed
+  // the browser during the 3 second timeout
+  const handlePlayCard = useCallback(
+    async (card: string, player?: PlayerPos) => {
+      setIsUpdating(true);
+
+      const round = game.playCard(card, player);
+
+      await updateGame(game);
+
+      if (round) {
+        await new Promise((r) => setTimeout(r, 3000));
+
+        game.moveToNextRound(round.player);
+
+        await updateGame(game);
+      }
+
+      setIsUpdating(false);
+    },
+    [game, updateGame]
+  );
+
   return {
     user,
     fetch,
     game,
     isLoadingGame,
     isLoading,
+    isUpdating,
     gameError,
     handleEndGame,
     handleBid,
+    handlePlayCard,
   };
 };
 

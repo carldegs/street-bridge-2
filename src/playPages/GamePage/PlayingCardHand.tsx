@@ -7,6 +7,7 @@ import {
 import { motion } from 'framer-motion';
 import React from 'react';
 
+import { CardSuit } from '../../constants';
 import { Card } from '../../lib/api/_game/Card';
 import PlayingCard from './PlayingCard';
 
@@ -17,8 +18,21 @@ const spring = {
 };
 
 const PlayingCardHand: React.FC<
-  { cards: Card[]; hide?: boolean } & WrapProps
-> = ({ cards = [], hide, ...props }) => {
+  {
+    cards: Card[];
+    hide?: boolean;
+    disableHand?: boolean;
+    disableSuits?: CardSuit[];
+    onClick?: (card: Card) => void;
+  } & Omit<WrapProps, 'onClick'>
+> = ({
+  cards = [],
+  hide,
+  disableHand,
+  disableSuits = [],
+  onClick,
+  ...props
+}) => {
   const size = useBreakpointValue({
     base: 'sm',
     md: 'md',
@@ -44,16 +58,33 @@ const PlayingCardHand: React.FC<
       overflow="visible"
       {...props}
     >
-      {cards?.map((card) => (
-        <WrapItem
-          as={motion.li}
-          layout
-          transition={spring as any}
-          key={card.id}
-        >
-          <PlayingCard card={card} size={size} />
-        </WrapItem>
-      ))}
+      {cards?.map((card) => {
+        const isSuitDisabled = disableSuits.includes(card.suit);
+        const isDisabled = disableHand || isSuitDisabled;
+        return (
+          <WrapItem
+            as={motion.li}
+            layout
+            transition={spring as any}
+            key={card.id}
+            onClick={() => {
+              if (!isDisabled && onClick) {
+                onClick(card);
+              }
+            }}
+            title={
+              disableHand
+                ? `It's not your turn`
+                : isSuitDisabled
+                ? 'You must play the correct suit'
+                : ''
+            }
+            {...{ disabled: isDisabled }}
+          >
+            <PlayingCard card={card} size={size} disabled={isDisabled} />
+          </WrapItem>
+        );
+      })}
     </Wrap>
   );
 };

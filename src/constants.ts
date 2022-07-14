@@ -76,9 +76,9 @@ export const CardSuitLabels = {
 
 export const CardSuitIcons = {
   [CardSuit.club]: Club,
-  [CardSuit.diamond]: Diamond,
   [CardSuit.heart]: Heart,
   [CardSuit.spade]: Spade,
+  [CardSuit.diamond]: Diamond,
 };
 
 export const BidSuitLabels = {

@@ -1,26 +1,53 @@
-import { Box, BoxProps, HStack, Text, useColorMode } from '@chakra-ui/react';
-import React from 'react';
+import {
+  FlexProps,
+  Flex,
+  HStack,
+  Text,
+  useColorMode,
+  useClipboard,
+  useToast,
+} from '@chakra-ui/react';
+import React, { useEffect } from 'react';
 
-export const LobbyCodeCard: React.FC<BoxProps & { code: string }> = ({
-  code,
-  ...props
-}) => {
+export const LobbyCodeCard: React.FC<
+  FlexProps & { code: string; variant?: 'flat' }
+> = ({ code, variant, ...props }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === 'dark';
+  const codeClipboard = useClipboard(code);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (codeClipboard.hasCopied) {
+      toast({
+        status: 'success',
+        description: 'Code copied',
+        duration: 1500,
+      });
+    }
+  }, [codeClipboard.hasCopied, toast]);
 
   return (
-    <Box
+    <Flex
+      flexDir={variant === 'flat' ? { base: 'row', md: 'column' } : 'column'}
       bg={isDark ? 'gray.700' : 'gray.200'}
-      px={4}
-      py={3}
+      px={variant === 'flat' ? { base: 2, md: 4 } : 4}
+      py={variant === 'flat' ? { base: 1, md: 3 } : 3}
+      align="center"
+      justify={
+        variant === 'flat' ? { base: 'space-between', md: 'center' } : 'center'
+      }
       borderRadius="lg"
       cursor="pointer"
-      w="fit-content"
+      w={
+        variant === 'flat' ? { base: 'full', md: 'fit-content' } : 'fit-content'
+      }
       transition="250ms cubic-bezier(.29,.91,.32,.96)"
       _hover={{
         bg: 'teal.300',
         transform: 'scale(1.04)',
       }}
+      onClick={codeClipboard.onCopy}
       {...props}
     >
       <Text
@@ -29,31 +56,23 @@ export const LobbyCodeCard: React.FC<BoxProps & { code: string }> = ({
           base: 'xs',
           md: 'sm',
         }}
-        letterSpacing="widest"
-        mb={-1}
+        letterSpacing={
+          variant === 'flat' ? { base: 'wide', md: 'widest' } : 'widest'
+        }
+        mb={variant === 'flat' ? { md: -1 } : -1}
       >
         ROOM CODE
       </Text>
-      <HStack>
-        <Text
-          fontSize={{
-            base: 'lg',
-            md: '2xl',
-          }}
-          fontWeight="bold"
-        >
-          {code.substring(0, 4)}
-        </Text>
-        <Text
-          fontSize={{
-            base: 'lg',
-            md: '2xl',
-          }}
-          fontWeight="bold"
-        >
-          {code.substring(4, 8)}
-        </Text>
+      <HStack
+        fontSize={{
+          base: variant === 'flat' ? 'sm' : 'lg',
+          md: '2xl',
+        }}
+        fontWeight="bold"
+      >
+        <Text>{code.substring(0, 4)}</Text>
+        <Text>{code.substring(4, 8)}</Text>
       </HStack>
-    </Box>
+    </Flex>
   );
 };

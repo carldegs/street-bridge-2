@@ -35,6 +35,14 @@ export class Hand {
     }
   }
 
+  public get availableCards() {
+    return this.cards.filter((card) => !card.isPlayed);
+  }
+
+  public get usedCards() {
+    return this.cards.filter((card) => card.isPlayed);
+  }
+
   public toObject = () => {
     return this.cards.map((card) => card.toObject());
   };

@@ -27,11 +27,12 @@ const DEFAULT_BOX_SHADOW =
 const HOVER_BOX_SHADOW =
   'rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;';
 
-const PlayingCard: ComponentMultiStyleConfig = {
+export const PlayingCard: ComponentMultiStyleConfig = {
   parts: ['card', 'inner', 'value', 'suit'],
   baseStyle: {
     card: {
       ...getCardWidthHeight(35),
+      userSelect: 'none',
       bg: 'gray.100',
       borderRadius: 'xl',
       boxShadow: DEFAULT_BOX_SHADOW,
@@ -45,6 +46,10 @@ const PlayingCard: ComponentMultiStyleConfig = {
       _groupHover: {
         filter: 'brightness(0.8)',
         transform: 'scale(0.97)',
+      },
+      _disabled: {
+        filter: 'brightness(0.5) !important',
+        cursor: 'not-allowed',
       },
       cursor: 'pointer',
       transition: '0.125s cubic-bezier(.29,.91,.32,.96)',
@@ -128,4 +133,54 @@ const PlayingCard: ComponentMultiStyleConfig = {
   },
 };
 
-export default PlayingCard;
+export const CardMini: ComponentMultiStyleConfig = {
+  baseStyle: {
+    card: {
+      userSelect: 'none',
+      bg: 'gray.100',
+      borderRadius: 'lg',
+      boxShadow: DEFAULT_BOX_SHADOW,
+      transition: '0.125s cubic-bezier(.29,.91,.32,.96)',
+      p: 1,
+      w: '45px',
+      h: '45px',
+    },
+    inner: {
+      w: 'full',
+      h: 'full',
+      borderRadius: 'lg',
+      flexDir: 'row',
+      display: 'flex',
+    },
+    value: {
+      fontWeight: 'bold',
+      fontSize: 'lg',
+      mt: -1,
+      letterSpacing: 'tight',
+    },
+    suit: {
+      fontWeight: 'bold',
+      fontSize: 'lg',
+      ml: '-1px',
+    },
+  },
+  sizes: {
+    md: {
+      card: {
+        w: '58px',
+        h: '58px',
+        p: 1.5,
+        borderRadius: 'xl',
+      },
+      value: {
+        fontSize: '2xl',
+      },
+      suit: {
+        fontSize: '2xl',
+        ml: '-2px',
+      },
+    },
+  },
+  parts: PlayingCard.parts,
+  variants: PlayingCard.variants,
+};

@@ -6,20 +6,63 @@ import {
   Team,
   BidSuit,
   TEAM_COLORS,
+  CardSuit,
 } from '../../../constants';
-import {
-  BidHistory,
-  Play,
-  RoundHistory,
-  TurnMetadata,
-  Bid,
-  Members,
-  GameUser,
-} from '../../../types';
+import { BidHistory, Bid, Members, GameUser } from '../../../types';
 import { getRandInt } from '../../../utils';
 import { Card } from '../_game/Card';
 import { Deck } from '../_game/Deck';
 import { Hand } from '../_game/Hand';
+
+export class TurnMetadata {
+  constructor(
+    public playerId: string,
+    public player: PlayerPos,
+    public teamName: string,
+    public team: Team
+  ) {}
+}
+export class Play extends TurnMetadata {
+  public card: Card;
+
+  constructor(obj: { card: Card } & TurnMetadata) {
+    super(obj.playerId, obj.player, obj.teamName, obj.team);
+    this.card = new Card(obj.card.value, obj.card.suit);
+  }
+
+  public toObject() {
+    return {
+      playerId: this.playerId,
+      player: this.player,
+      teamName: this.teamName,
+      team: this.team,
+      card: this.card.toObject(),
+    };
+  }
+}
+
+export class Round extends TurnMetadata {
+  public playerId: string;
+  public player: PlayerPos;
+  public teamName: string;
+  public team: Team;
+  public plays: Play[];
+
+  constructor(obj: { plays: Play[] } & TurnMetadata) {
+    super(obj.playerId, obj.player, obj.teamName, obj.team);
+    this.plays = obj.plays.map((play) => new Play(play));
+  }
+
+  public toObject() {
+    return {
+      playerId: this.playerId,
+      player: this.player,
+      teamName: this.teamName,
+      team: this.team,
+      plays: this.plays.map((play) => play.toObject()),
+    };
+  }
+}
 
 export class Game {
   public get players(): string[] {
@@ -38,12 +81,12 @@ export class Game {
     public hands: Record<number, Hand> = {},
     public phase: Phase = Phase.bidding,
     public currPlayer: PlayerPos = getRandInt(0, 3),
-    public bid: BidHistory = null,
+    public bid: BidHistory = null, // This is the winning bid. Not the latest bid.
     public bidHistory: BidHistory[] = [],
     public numPasses: number = 0,
     public round: number = 0,
     public plays: Play[] = [],
-    public roundHistory: RoundHistory[] = [],
+    public roundHistory: Round[] = [],
     public id: string = '',
     public ref: DocumentReference<DocumentData> = undefined
   ) {
@@ -175,7 +218,44 @@ export class Game {
     this.moveCurrPlayer();
   }
 
-  public playCard(player: PlayerPos, cardId: string) {
+  public get firstSuit() {
+    return this.plays?.[0]?.card?.suit;
+  }
+
+  public playerHasFirstSuit(userId) {
+    return !!this.getPlayerHand(userId).availableCards.find(
+      (card) => card.card.suit === this.firstSuit
+    );
+  }
+
+  public hasPlayedCorrectSuit(userId: string, cardId: string) {
+    const playedCard = new Card(cardId);
+
+    if (playedCard.suit === this.firstSuit) {
+      return true;
+    }
+
+    return !this.playerHasFirstSuit(userId);
+  }
+
+  public getPlayerAllowedSuits(userId = this.currPlayerId) {
+    return this.playerHasFirstSuit(userId)
+      ? [this.firstSuit]
+      : [CardSuit.club, CardSuit.diamond, CardSuit.heart, CardSuit.spade];
+  }
+
+  public getPlayerRestrictedSuits(userId = this.currPlayerId) {
+    return this.playerHasFirstSuit(userId)
+      ? [
+          CardSuit.club,
+          CardSuit.diamond,
+          CardSuit.heart,
+          CardSuit.spade,
+        ].filter((suit) => suit !== this.firstSuit)
+      : [];
+  }
+
+  public playCard(cardId: string, player: PlayerPos = this.currPlayer) {
     this.isCorrectPhase(Phase.battle);
     this.isCurrPlayer(player);
 
@@ -185,14 +265,18 @@ export class Game {
       throw new Error(`Card not in player's hand.`);
     }
 
+    if (!this.hasPlayedCorrectSuit(this.players[player], cardId)) {
+      throw new Error(`Card cannot be played.`);
+    }
+
     const cardPlayed = playerHand.playCard(cardId, this.round);
 
     this.plays = [
       ...this.plays,
-      {
+      new Play({
         card: cardPlayed,
         ...this.turnMetadata,
-      },
+      }),
     ];
 
     if (this.plays.length === 4) {
@@ -223,30 +307,37 @@ export class Game {
 
       const winningTeam = this.getTeam(winningPlayer);
 
+      const lastRound = {
+        plays: this.plays.map((play) => new Play(play)),
+        player: winningPlayer,
+        playerId: this.players[winningPlayer],
+        team: winningTeam,
+        teamName: this.teamNames[winningTeam],
+      };
+
       this.roundHistory = [
-        ...this.roundHistory,
-        {
-          plays: [...this.plays],
-          player: winningPlayer,
-          playerId: this.players[winningPlayer],
-          team: winningTeam,
-          teamName: this.teamNames[winningTeam],
-        },
+        ...this.roundHistory.map((round) => new Round(round)),
+        new Round(lastRound),
       ];
 
-      this.round += 1;
-      this.plays = [];
-
-      this.currPlayer = winningPlayer;
-
-      if (
-        this.scores[0] >= this.tricksNeeded[0] ||
-        this.scores[1] >= this.tricksNeeded[1]
-      ) {
-        this.phase = Phase.postgame;
-      }
+      return lastRound;
     } else {
       this.moveCurrPlayer();
+    }
+
+    return false;
+  }
+
+  public moveToNextRound(winningPlayer: PlayerPos) {
+    this.round += 1;
+    this.plays = [];
+    this.currPlayer = winningPlayer;
+
+    if (
+      this.scores[0] >= this.tricksNeeded[0] ||
+      this.scores[1] >= this.tricksNeeded[1]
+    ) {
+      this.phase = Phase.postgame;
     }
   }
 
