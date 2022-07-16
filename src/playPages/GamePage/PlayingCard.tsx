@@ -1,6 +1,7 @@
 import {
   Box,
   Flex,
+  FlexProps,
   ResponsiveValue,
   Text,
   useMultiStyleConfig,
@@ -12,16 +13,17 @@ import { Card } from '../../lib/api/_game/Card';
 
 interface PlayingCardProps {
   card: Pick<Card, 'valueLabel' | 'value' | 'suit'>;
-  size?: ResponsiveValue<'sm' | 'md' | 'lg' | 'xl'>;
+  size?: ResponsiveValue<'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
   disabled?: boolean;
 }
 
-const PlayingCard: React.FC<PlayingCardProps> = ({
+const PlayingCard: React.FC<PlayingCardProps & FlexProps> = ({
   card,
   disabled,
   size = 'md',
+  ...props
 }) => {
-  const { suit, value, valueLabel } = card;
+  const { suit, value, valueLabel } = card || {};
   const SuitIcon = CardSuitIcons[suit];
 
   const styles = useMultiStyleConfig('PlayingCard', {
@@ -30,7 +32,7 @@ const PlayingCard: React.FC<PlayingCardProps> = ({
   });
 
   return (
-    <Flex __css={styles.card} {...{ disabled }}>
+    <Flex __css={styles.card} {...{ disabled }} {...props}>
       <Flex __css={styles.inner}>
         <Text sx={styles.value}>{valueLabel?.short || value}</Text>
         <Box __css={styles.suit}>{SuitIcon && <SuitIcon weight="fill" />}</Box>

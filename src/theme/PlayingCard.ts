@@ -36,12 +36,12 @@ export const PlayingCard: ComponentMultiStyleConfig = {
       bg: 'gray.100',
       borderRadius: 'xl',
       boxShadow: DEFAULT_BOX_SHADOW,
-      zIndex: 0,
+      zIndex: 20,
       _hover: {
         boxShadow: HOVER_BOX_SHADOW,
-        transform: 'scale(1.07) !important',
+        transform: 'scale(1.07) position(0, 14px) !important',
         filter: `brightness(1) !important`,
-        zIndex: 10,
+        zIndex: 30,
       },
       _groupHover: {
         filter: 'brightness(0.8)',
@@ -79,6 +79,21 @@ export const PlayingCard: ComponentMultiStyleConfig = {
     },
   },
   sizes: {
+    xs: {
+      card: {
+        ...getCardWidthHeight(32),
+        p: 1.5,
+      },
+      value: {
+        fontSize: '2xl',
+        mt: -1,
+        ml: 1,
+      },
+      suit: {
+        fontSize: '5.25rem',
+        mt: 0,
+      },
+    },
     md: {
       card: {
         ...getCardWidthHeight(41),

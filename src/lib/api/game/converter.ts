@@ -79,10 +79,20 @@ const gameConverter = createConverter<Game>(
         Object.entries(hands).map(([key, value]) => [
           key,
           new Hand(
-            value.map(
-              ({ card, roundPlayed }) =>
-                new HandCard(new Card(card.value, card.suit), roundPlayed)
-            )
+            value.map(({ card, roundPlayed }) => {
+              // TODO: Debug
+              if (!card?.value && !card?.suit) {
+                return new HandCard(
+                  new Card(
+                    (card as unknown as HandCard).card.value,
+                    (card as unknown as HandCard).card.suit
+                  ),
+                  roundPlayed
+                );
+              }
+
+              return new HandCard(new Card(card.value, card.suit), roundPlayed);
+            })
           ),
         ])
       ),

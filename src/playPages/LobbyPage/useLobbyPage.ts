@@ -1,10 +1,9 @@
-import { getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { runTransaction, setDoc } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { useAuthState, useUpdateProfile } from 'react-firebase-hooks/auth';
 
 import { usePlay } from '../../hooks/PlayContext';
-import { auth } from '../../lib/api/firebase';
-import gameConverter from '../../lib/api/game/converter';
+import { auth, firestore } from '../../lib/api/firebase';
 import { gameDoc } from '../../lib/api/game/firebaseRef';
 import Lobby from '../../lib/api/lobby/Lobby';
 import lobbyConverter from '../../lib/api/lobby/converter';
@@ -58,43 +57,62 @@ const useLobbyPage = () => {
 
       await updateProfile({ displayName: hostName });
 
-      const lobbySnap = await getDoc(lobbyDoc(code));
+      const lobbyRef = lobbyDoc(code);
+      const playerRef = playerDoc(user.uid);
 
-      if (!lobbySnap.exists()) {
-        throw new Error(`Lobby ${code} not found`);
-      }
+      await runTransaction(firestore, async (transaction) => {
+        const playerSnap = await transaction.get(playerRef);
 
-      const lobby = lobbySnap.data();
+        const lobbySnap = await transaction.get(lobbyRef);
 
-      if (!lobby.isMember(user.uid)) {
-        lobby.addMember({ uid: user.uid, displayName: hostName });
-      } else {
-        lobby.updateMember(user.uid, { displayName: hostName });
-      }
-
-      await updateDoc(lobbyDoc(code), lobbyConverter.toFirestore(lobby));
-
-      if (lobby.currGame) {
-        const gameSnap = await getDoc(gameDoc(lobby.currGame));
-
-        if (!gameSnap.exists()) {
-          // TODO: Undo all changes
-          throw new Error(`Game ${lobby.currGame} not found`);
+        if (!lobbySnap.exists()) {
+          throw new Error(`Lobby ${code} not found`);
         }
 
-        const game = gameSnap.data();
+        const lobby = lobbySnap.data();
 
-        game.addMember({ uid: user.uid, displayName: hostName });
+        if (!lobby.isMember(user.uid)) {
+          lobby.addMember({ uid: user.uid, displayName: hostName });
+        } else {
+          lobby.updateMember(user.uid, { displayName: hostName });
+        }
 
-        await updateDoc(
-          gameDoc(lobby.currGame),
-          gameConverter.toFirestore(game)
-        );
-      }
+        const gameRef = gameDoc(lobby.currGame);
 
-      await setPlayerLobby(code);
+        if (lobby.currGame) {
+          const gameSnap = await transaction.get(gameRef);
+
+          if (!gameSnap.exists()) {
+            throw new Error(`Game ${lobby.currGame} not found`);
+          }
+
+          const game = gameSnap.data();
+
+          game.addMember({ uid: user.uid, displayName: hostName });
+
+          transaction.update(gameRef, { membersData: game.membersData });
+        }
+
+        transaction.update(lobbyRef, {
+          members: lobby.members,
+        });
+
+        if (!playerSnap.exists()) {
+          transaction.set(
+            playerRef,
+            playerConverter.toFirestore(new Player(code))
+          );
+        } else {
+          transaction.update(
+            playerRef,
+            playerConverter.toFirestore(new Player(code))
+          );
+        }
+      });
+
+      fetch(user);
     },
-    [setPlayerLobby, updateProfile, user]
+    [fetch, updateProfile, user]
   );
 
   return {

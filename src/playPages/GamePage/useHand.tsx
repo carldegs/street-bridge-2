@@ -122,6 +122,7 @@ const useHand = (game?: Game, user?: User) => {
     handleShowHand,
     selectedUser,
     setSelectedUser,
+    spectatingUserId: userId,
   };
 };
 

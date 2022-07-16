@@ -31,6 +31,7 @@ const JoinLobbyPanel: React.FC = () => {
       </Heading>
       <FormProvider {...methods}>
         <Stack spacing={8} w="full">
+          <Heading fontSize="lg">{user.uid}</Heading>
           <QFormControl name="code" label="Room Code" isRequired>
             <Input variant="flushed" />
           </QFormControl>

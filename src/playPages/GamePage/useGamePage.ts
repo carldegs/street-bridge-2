@@ -1,4 +1,4 @@
-import { getDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, deleteDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { useCallback, useMemo, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
@@ -8,9 +8,10 @@ import { usePlay } from '../../hooks/PlayContext';
 import { auth } from '../../lib/api/firebase';
 import { Game } from '../../lib/api/game/Game';
 import gameConverter from '../../lib/api/game/converter';
-import { gameDoc } from '../../lib/api/game/firebaseRef';
+import { gameCollection, gameDoc } from '../../lib/api/game/firebaseRef';
 import lobbyConverter from '../../lib/api/lobby/converter';
 import { lobbyDoc } from '../../lib/api/lobby/firebaseRef';
+import { playerDoc } from '../../lib/api/player/firebaseRef';
 import { Bid } from '../../types';
 
 const useGamePage = () => {
@@ -29,7 +30,47 @@ const useGamePage = () => {
     [docQuery]
   );
 
-  const handleEndGame = useCallback(async () => {
+  const handleEndGame = useCallback(
+    async (createNewGame = false) => {
+      setIsUpdating(true);
+      const lobbySnap = await getDoc(lobbyDoc(game.lobbyId));
+
+      if (!lobbySnap.exists()) {
+        throw new Error(`Lobby ${game.lobbyId} not found`);
+      }
+
+      const lobby = lobbySnap.data();
+      lobby.cancelCurrGame();
+
+      if (createNewGame) {
+        const { host, players, membersData, teamNames, lobbyId } =
+          lobby.getGameProps();
+        const newGame = new Game(
+          host,
+          players,
+          membersData,
+          teamNames,
+          lobbyId
+        );
+
+        const { id: newGameId } = await addDoc(gameCollection, newGame);
+
+        lobby.setGame(newGameId);
+      }
+
+      game.cancelGame();
+
+      await updateDoc(
+        lobbyDoc(game.lobbyId),
+        lobbyConverter.toFirestore(lobby)
+      );
+      await updateGame(game);
+      setIsUpdating(false);
+    },
+    [game, updateGame]
+  );
+
+  const handleDeleteRoom = useCallback(async () => {
     const lobbySnap = await getDoc(lobbyDoc(game.lobbyId));
 
     if (!lobbySnap.exists()) {
@@ -38,12 +79,20 @@ const useGamePage = () => {
 
     const lobby = lobbySnap.data();
 
-    lobby.cancelCurrGame();
-    game.cancelGame();
+    await Promise.all(
+      lobby.memberIdList.map(async (memberId) => {
+        await updateDoc(playerDoc(memberId), { lobby: '' });
+      })
+    );
 
-    await updateDoc(lobbyDoc(game.lobbyId), lobbyConverter.toFirestore(lobby));
-    await updateGame(game);
-  }, [game, updateGame]);
+    await Promise.all(
+      lobby.prevGames.map(async (gameId) => {
+        await deleteDoc(gameDoc(gameId));
+      })
+    );
+
+    await deleteDoc(docQuery);
+  }, [docQuery, game?.lobbyId]);
 
   const handleBid = useCallback(
     async (bid: Bid | 'pass', player?: PlayerPos) => {
@@ -88,6 +137,7 @@ const useGamePage = () => {
     handleEndGame,
     handleBid,
     handlePlayCard,
+    handleDeleteRoom,
   };
 };
 

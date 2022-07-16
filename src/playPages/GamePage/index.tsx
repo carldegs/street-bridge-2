@@ -17,19 +17,13 @@ import {
   Circle,
   Grid,
   Show,
-  TableContainer,
-  Table,
-  Thead,
-  Tr,
-  Th,
-  Tbody,
-  Td,
   ButtonGroup,
   Button,
 } from '@chakra-ui/react';
 import {
   ArrowFatDown,
   ArrowFatUp,
+  Cards,
   Faders,
   HandPalm,
   SortAscending,
@@ -52,13 +46,14 @@ import {
 import useCustomColorMode from '../../hooks/useCustomColorMode';
 import { BidChat } from './BidChat';
 import BidsModal from './BidsModal';
-import CardMini from './CardMini';
 import EndGameAlert from './EndGameAlert';
 import { GamePageNavBar } from './GamePageNavBar';
 import { HandSelectionMenu } from './HandSelectionMenu';
+import HistoryModal from './HistoryModal';
+import HistoryTable from './HistoryTable';
 import PlayerListModal from './PlayerListModal';
-import PlayingCard from './PlayingCard';
 import PlayingCardHand from './PlayingCardHand';
+import PlayingTable from './PlayingTable';
 import TeamScore from './TeamScore';
 import useGamePage from './useGamePage';
 import useHand from './useHand';
@@ -76,12 +71,14 @@ const GamePage: React.FC = () => {
     handleBid,
     handlePlayCard,
     isUpdating,
+    handleDeleteRoom,
   } = useGamePage();
   const colorMode = useCustomColorMode();
 
   const playerListModalDisc = useDisclosure();
   const endGameAlertDisc = useDisclosure();
   const bidsModalDisc = useDisclosure();
+  const historyModalDisc = useDisclosure();
 
   const { score, scoreModeLabel, leadingTeam, toggleMode, winningTeam } =
     useScore(game);
@@ -99,10 +96,22 @@ const GamePage: React.FC = () => {
     handleShowHand,
     selectedUser,
     setSelectedUser,
+    spectatingUserId,
   } = useHand(game, user);
 
   const settingsMenuList = useMemo(
     () => [
+      {
+        text: 'End Game',
+        icon: <HandPalm size="100%" weight="fill" />,
+        onClick: endGameAlertDisc.onOpen,
+        hidden: game?.host?.uid !== user?.uid,
+      },
+      {
+        text: colorMode.tooltip,
+        icon: <colorMode.Icon weight="fill" />,
+        onClick: colorMode.toggle,
+      },
       {
         text: 'View Players',
         icon: <UsersThree size="100%" weight="fill" />,
@@ -115,15 +124,10 @@ const GamePage: React.FC = () => {
         onClick: bidsModalDisc.onOpen,
       },
       {
-        text: colorMode.tooltip,
-        icon: <colorMode.Icon weight="fill" />,
-        onClick: colorMode.toggle,
-      },
-      {
-        text: 'End Game',
-        icon: <HandPalm size="100%" weight="fill" />,
-        onClick: endGameAlertDisc.onOpen,
-        hidden: game?.host?.uid !== user?.uid,
+        text: 'View Rounds',
+        icon: <Cards size="100%" weight="fill" />,
+        hidden: game?.phase !== Phase.battle,
+        onClick: historyModalDisc.onOpen,
       },
     ],
     [
@@ -132,6 +136,7 @@ const GamePage: React.FC = () => {
       endGameAlertDisc.onOpen,
       game?.host?.uid,
       game?.phase,
+      historyModalDisc.onOpen,
       playerListModalDisc.onOpen,
       user?.uid,
     ]
@@ -170,6 +175,12 @@ const GamePage: React.FC = () => {
       });
     }
   }, [gameError, isLoading, toast]);
+
+  useEffect(() => {
+    if (!isLoading && !game) {
+      fetch(user);
+    }
+  }, [fetch, game, isLoading, user]);
 
   useEffect(() => {
     if (!isLoading && game?.phase === Phase.cancelled) {
@@ -239,6 +250,7 @@ const GamePage: React.FC = () => {
         {...endGameAlertDisc}
       />
       <BidsModal game={game} {...bidsModalDisc} />
+      <HistoryModal game={game} {...historyModalDisc} />
       <Box
         w="full"
         h="100vh"
@@ -247,7 +259,6 @@ const GamePage: React.FC = () => {
         bg={!colorMode.isDark && 'gray.100'}
         overflow="auto"
       >
-        {isUpdating && <Heading>TEST</Heading>}
         <GamePageNavBar
           roleId={game.getMemberData(user.uid).role}
           teamName={game.getMemberRoleName(user.uid)}
@@ -263,7 +274,9 @@ const GamePage: React.FC = () => {
                   <Heading fontSize="2xl">BID PHASE</Heading>
                 )}
                 {game.phase === Phase.battle && (
-                  <Heading fontSize="2xl">GAME PHASE</Heading>
+                  <Hide above="md">
+                    <Heading fontSize="2xl">GAME PHASE</Heading>
+                  </Hide>
                 )}
                 {game.phase === Phase.postgame && (
                   <Heading
@@ -345,9 +358,9 @@ const GamePage: React.FC = () => {
                   md: '0.2fr 1fr 0.2fr',
                 }}
                 alignItems="center"
-                mt={2}
+                mt={{ base: 2, lg: '-75px' }}
                 w="full"
-                maxW="container.md"
+                maxW="650px"
                 userSelect="none"
               >
                 {game.bid.team === 0 ? (
@@ -401,77 +414,51 @@ const GamePage: React.FC = () => {
                 {game.bid.team === 1 && BidData}
               </Grid>
               {game.phase === Phase.battle ? (
-                <HStack>
-                  {game.plays?.map((play) => (
-                    <Stack
-                      key={`${play.card.value}-${play.card.suit}-${play.playerId}`}
-                    >
-                      <PlayingCard card={play.card} />
-                      <Text>
-                        {game.getPlayerPublicData(play.playerId).displayName}
-                      </Text>
-                    </Stack>
-                  ))}
-                </HStack>
+                // TODO: Handle spectators
+                <PlayingTable
+                  game={game}
+                  userId={isSpectator ? game.players[0] : user.uid}
+                />
               ) : game.phase === Phase.postgame ? (
                 <>
                   {game.host.uid === user.uid && (
-                    <ButtonGroup mt={8} mb={4}>
-                      <Button>Back to Lobby</Button>
-                      <Button>Play Again</Button>
+                    <ButtonGroup mt={8} mb={4} colorScheme="teal">
+                      <Button
+                        onClick={() => {
+                          handleEndGame(true);
+                          fetch(user);
+                        }}
+                        isLoading={isUpdating}
+                      >
+                        Play Again
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleEndGame();
+                          fetch(user);
+                        }}
+                        isLoading={isUpdating}
+                      >
+                        Back to Lobby
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleDeleteRoom();
+                          fetch(user);
+                        }}
+                        isLoading={isUpdating}
+                      >
+                        Close Lobby
+                      </Button>
                     </ButtonGroup>
                   )}
-                  <TableContainer mt={4} mb={64}>
-                    <Table variant="simple" size={{ base: 'sm', md: 'md' }}>
-                      <Thead>
-                        <Tr>
-                          {game.players.map((player) => (
-                            <Th
-                              key={`header-${player}`}
-                              color={`${
-                                TEAM_COLORS[game.getMemberData(player).role]
-                              }.400`}
-                            >
-                              {game.getMemberName(player)}
-                            </Th>
-                          ))}
-                        </Tr>
-                      </Thead>
-                      <Tbody>
-                        {game.roundHistory
-                          .map((round, i) => ({ ...round, roundNum: i }))
-                          .map((round) => (
-                            <Tr key={`round-${JSON.stringify(round.plays)}`}>
-                              {game.players.map((player) => {
-                                const play = round.plays.find(
-                                  (p) => p.playerId === player
-                                );
-
-                                return (
-                                  <Td
-                                    key={`card-${play.playerId}-${round.roundNum}`}
-                                    opacity={
-                                      round.playerId === player ? 1 : 0.5
-                                    }
-                                  >
-                                    <CardMini
-                                      card={play.card}
-                                      size={{ base: 'sm', md: 'md' }}
-                                    />
-                                  </Td>
-                                );
-                              })}
-                            </Tr>
-                          ))}
-                      </Tbody>
-                    </Table>
-                  </TableContainer>
+                  <HistoryTable game={game} mt={4} mb={64} />
                 </>
               ) : null}
             </>
           )}
         </Container>
-        <Stack w="full" pos="fixed" bottom={0}>
+        <Stack w="full" pos="fixed" bottom={0} zIndex={40}>
           <PlayingCardHand
             cards={playerCards}
             hide={!showHand}
@@ -491,7 +478,8 @@ const GamePage: React.FC = () => {
             px={{ base: 4, md: 8, lg: 12, xl: 20 }}
             py={3}
             bg={colorMode.isDark ? 'gray.900' : 'gray.200'}
-            zIndex={12}
+            // TODO: Standardize zIndices
+            zIndex={40}
           >
             <Box display={{ base: 'none', md: 'initial' }}>
               <DrawerMenu
@@ -578,11 +566,7 @@ const GamePage: React.FC = () => {
             <Flex justify="flex-end" flexGrow={1}>
               {isSpectator && (
                 <HandSelectionMenu
-                  selectedUser={
-                    selectedUser === AUTO_LOOP
-                      ? game.getMemberName(game.currPlayerId)
-                      : game.getMemberName(selectedUser)
-                  }
+                  selectedUser={game.getMemberName(spectatingUserId)}
                   setSelectedUser={setSelectedUser}
                   players={game.players.sort().map((id) => ({
                     value: id,
