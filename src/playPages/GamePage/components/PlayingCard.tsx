@@ -8,8 +8,8 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 
-import { CardSuitIcons } from '../../constants';
-import { Card } from '../../lib/api/_game/Card';
+import { CardSuitIcons } from '../../../constants';
+import { Card } from '../../../lib/api/_game/Card';
 
 interface PlayingCardProps {
   card: Pick<Card, 'valueLabel' | 'value' | 'suit'>;

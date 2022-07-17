@@ -1,7 +1,7 @@
 import { Flex, Heading, Spacer } from '@chakra-ui/react';
 import React from 'react';
 
-import { LobbyRole, TEAM_COLORS } from '../../constants';
+import { LobbyRole, TEAM_COLORS } from '../../../constants';
 
 interface Props {
   roleId: LobbyRole;

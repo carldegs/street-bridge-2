@@ -2,9 +2,9 @@ import { User } from 'firebase/auth';
 import { Funnel } from 'phosphor-react';
 import { useCallback, useMemo, useState } from 'react';
 
-import { CardSuit, AUTO_LOOP, CardSuitIcons } from '../../constants';
-import { Game } from '../../lib/api/game/Game';
-import { SortOrder } from '../../types';
+import { CardSuit, AUTO_LOOP, CardSuitIcons } from '../../../constants';
+import { Game } from '../../../lib/api/game/Game';
+import { SortOrder } from '../../../types';
 
 const useHand = (game?: Game, user?: User) => {
   const [sort, setSort] = useState<SortOrder>('');

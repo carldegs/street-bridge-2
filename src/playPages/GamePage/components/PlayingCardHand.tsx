@@ -7,8 +7,8 @@ import {
 import { motion } from 'framer-motion';
 import React from 'react';
 
-import { CardSuit } from '../../constants';
-import { Card } from '../../lib/api/_game/Card';
+import { CardSuit } from '../../../constants';
+import { Card } from '../../../lib/api/_game/Card';
 import PlayingCard from './PlayingCard';
 
 const spring = {

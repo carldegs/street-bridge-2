@@ -10,8 +10,8 @@ import {
 import { Robot, Eye } from 'phosphor-react';
 import React from 'react';
 
-import PhosphorIcon from '../../components/PhosphorIcon';
-import { AUTO_LOOP } from '../../constants';
+import PhosphorIcon from '../../../components/PhosphorIcon';
+import { AUTO_LOOP } from '../../../constants';
 
 export function HandSelectionMenu({
   selectedUser,

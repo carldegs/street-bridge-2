@@ -44,20 +44,20 @@ import {
   TEAM_COLORS,
 } from '../../constants';
 import useCustomColorMode from '../../hooks/useCustomColorMode';
-import { BidChat } from './BidChat';
-import BidsModal from './BidsModal';
-import EndGameAlert from './EndGameAlert';
-import { GamePageNavBar } from './GamePageNavBar';
-import { HandSelectionMenu } from './HandSelectionMenu';
-import HistoryModal from './HistoryModal';
-import HistoryTable from './HistoryTable';
-import PlayerListModal from './PlayerListModal';
-import PlayingCardHand from './PlayingCardHand';
-import PlayingTable from './PlayingTable';
-import TeamScore from './TeamScore';
-import useGamePage from './useGamePage';
-import useHand from './useHand';
-import useScore from './useScore';
+import { BidChat } from './components/BidChat';
+import BidsModal from './components/BidsModal';
+import EndGameAlert from './components/EndGameAlert';
+import { GamePageNavBar } from './components/GamePageNavBar';
+import { HandSelectionMenu } from './components/HandSelectionMenu';
+import HistoryModal from './components/HistoryModal';
+import HistoryTable from './components/HistoryTable';
+import PlayerListModal from './components/PlayerListModal';
+import PlayingCardHand from './components/PlayingCardHand';
+import PlayingTable from './components/PlayingTable';
+import TeamScore from './components/TeamScore';
+import useGamePage from './hooks/useGamePage';
+import useHand from './hooks/useHand';
+import useScore from './hooks/useScore';
 
 const GamePage: React.FC = () => {
   const toast = useToast();

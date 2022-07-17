@@ -11,21 +11,21 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 
-import { Game } from '../../lib/api/game/Game';
-import HistoryTable from './HistoryTable';
+import { Game } from '../../../lib/api/game/Game';
+import { BidChat } from './BidChat';
 
-interface HistoryModalProps extends Omit<ModalProps, 'children'> {
+interface BidsModalProps extends Omit<ModalProps, 'children'> {
   game: Game;
 }
 
-const HistoryModal: React.FC<HistoryModalProps> = ({ game, ...props }) => (
-  <Modal size="lg" {...props}>
+const BidsModal: React.FC<BidsModalProps> = ({ game, ...props }) => (
+  <Modal {...props}>
     <ModalOverlay />
     <ModalContent>
-      <ModalHeader>Rounds</ModalHeader>
+      <ModalHeader></ModalHeader>
       <ModalCloseButton />
       <ModalBody>
-        <HistoryTable game={game} />
+        <BidChat game={game} />
       </ModalBody>
       <ModalFooter>
         <Button onClick={props.onClose}>Close</Button>
@@ -34,4 +34,4 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ game, ...props }) => (
   </Modal>
 );
 
-export default HistoryModal;
+export default BidsModal;

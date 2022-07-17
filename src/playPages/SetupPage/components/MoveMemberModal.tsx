@@ -12,8 +12,8 @@ import {
 } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
 
-import { LobbyRole } from '../../constants';
-import Lobby from '../../lib/api/lobby/Lobby';
+import { LobbyRole } from '../../../constants';
+import Lobby from '../../../lib/api/lobby/Lobby';
 
 interface Props extends Omit<ModalProps, 'children'> {
   onClick: (user: string, role: LobbyRole) => void;

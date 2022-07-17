@@ -22,15 +22,15 @@ import DrawerMenu from '../../components/DrawerMenu';
 import { LobbyCodeCard } from '../../components/LobbyCodeCard';
 import { Team, LobbyRole, TEAM_COLORS } from '../../constants';
 import useCustomColorMode from '../../hooks/useCustomColorMode';
-import ChangeHostModal from './ChangeHostModal';
-import EditTeamNameModal from './EditTeamNameModal';
-import LeaveRoomAlert from './LeaveRoomAlert';
-import MoveMemberModal from './MoveMemberModal';
-import TeamCard from './TeamCard';
-import TeamCardHeader from './TeamCardHeader';
-import TeamCardList from './TeamCardList';
-import TeamJoinButton from './TeamJoinButton';
-import useSetupPage from './useSetupPage';
+import ChangeHostModal from './components/ChangeHostModal';
+import EditTeamNameModal from './components/EditTeamNameModal';
+import LeaveRoomAlert from './components/LeaveRoomAlert';
+import MoveMemberModal from './components/MoveMemberModal';
+import TeamCard from './components/TeamCard';
+import TeamCardHeader from './components/TeamCardHeader';
+import TeamCardList from './components/TeamCardList';
+import TeamJoinButton from './components/TeamJoinButton';
+import useSetupPage from './hooks/useSetupPage';
 
 const SetupPage: React.FC = () => {
   const toast = useToast();

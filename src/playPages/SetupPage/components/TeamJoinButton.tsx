@@ -1,7 +1,7 @@
 import { Button, ButtonProps, Flex } from '@chakra-ui/react';
 import React from 'react';
 
-import { LobbyRole } from '../../constants';
+import { LobbyRole } from '../../../constants';
 
 interface TeamJoinButtonProps extends Omit<ButtonProps, 'onClick'> {
   onClick: (selectedTeam: LobbyRole) => void;

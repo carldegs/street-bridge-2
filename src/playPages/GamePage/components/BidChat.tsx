@@ -14,17 +14,17 @@ import {
 import React, { useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
-import PhosphorIcon from '../../components/PhosphorIcon';
+import PhosphorIcon from '../../../components/PhosphorIcon';
 import {
   BidSuit,
   CardSuit,
   CardSuitIcons,
   CARD_COLORS,
   TEAM_COLORS,
-} from '../../constants';
-import { auth } from '../../lib/api/firebase';
-import { Game } from '../../lib/api/game/Game';
-import { Bid } from '../../types';
+} from '../../../constants';
+import { auth } from '../../../lib/api/firebase';
+import { Game } from '../../../lib/api/game/Game';
+import { Bid } from '../../../types';
 
 export const BidChat: React.FC<
   {

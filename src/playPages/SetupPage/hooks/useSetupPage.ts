@@ -3,15 +3,15 @@ import { useCallback, useMemo } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
 
-import { LobbyRole, Team } from '../../constants';
-import { usePlay } from '../../hooks/PlayContext';
-import { auth } from '../../lib/api/firebase';
-import { Game } from '../../lib/api/game/Game';
-import { gameCollection, gameDoc } from '../../lib/api/game/firebaseRef';
-import Lobby from '../../lib/api/lobby/Lobby';
-import lobbyConverter from '../../lib/api/lobby/converter';
-import { lobbyDoc } from '../../lib/api/lobby/firebaseRef';
-import { playerDoc } from '../../lib/api/player/firebaseRef';
+import { LobbyRole, Team } from '../../../constants';
+import { usePlay } from '../../../hooks/PlayContext';
+import { auth } from '../../../lib/api/firebase';
+import { Game } from '../../../lib/api/game/Game';
+import { gameCollection, gameDoc } from '../../../lib/api/game/firebaseRef';
+import Lobby from '../../../lib/api/lobby/Lobby';
+import lobbyConverter from '../../../lib/api/lobby/converter';
+import { lobbyDoc } from '../../../lib/api/lobby/firebaseRef';
+import { playerDoc } from '../../../lib/api/player/firebaseRef';
 
 const useSetupPage = () => {
   const [user, isLoadingUser] = useAuthState(auth);

@@ -10,8 +10,8 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 
-import { TEAM_COLORS } from '../../constants';
-import { Game } from '../../lib/api/game/Game';
+import { TEAM_COLORS } from '../../../constants';
+import { Game } from '../../../lib/api/game/Game';
 import CardMini from './CardMini';
 
 interface Props extends TableContainerProps {

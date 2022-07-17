@@ -7,7 +7,7 @@ import {
 } from '@chakra-ui/react';
 import React, { useMemo } from 'react';
 
-import { Game, Play } from '../../lib/api/game/Game';
+import { Game, Play } from '../../../lib/api/game/Game';
 import PlayingCard from './PlayingCard';
 
 interface Props {

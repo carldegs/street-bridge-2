@@ -16,8 +16,8 @@ import {
 } from '@chakra-ui/react';
 import React from 'react';
 
-import { LobbyRole, TEAM_COLORS } from '../../constants';
-import { Members } from '../../types';
+import { LobbyRole, TEAM_COLORS } from '../../../constants';
+import { Members } from '../../../types';
 
 interface PlayerListModalProps extends Omit<ModalProps, 'children'> {
   members: Members;

@@ -2,7 +2,7 @@ import { ColorProps, Flex, Heading, Icon, Tooltip } from '@chakra-ui/react';
 import { PencilSimple } from 'phosphor-react';
 import React from 'react';
 
-import { RFCC } from '../../types';
+import { RFCC } from '../../../types';
 
 const TeamCardHeader: RFCC<{
   colortheme?: ColorProps['color'];

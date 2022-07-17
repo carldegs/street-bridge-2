@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { Team } from '../../constants';
-import { Game } from '../../lib/api/game/Game';
+import { Team } from '../../../constants';
+import { Game } from '../../../lib/api/game/Game';
 
 // TODO: Refactor
 const useScore = (game?: Game) => {

@@ -8,15 +8,6 @@ const TeamScore: React.FC<{
 }> = ({ score, colorScheme, teamName, direction = 'left' }) => {
   return (
     <Flex
-      // align={{
-      //   base: 'center',
-      //   md:
-      //     direction === 'left'
-      //       ? 'end'
-      //       : direction === 'right'
-      //       ? 'start'
-      //       : 'center',
-      // }}
       align={
         direction === 'left'
           ? 'end'
@@ -24,10 +15,6 @@ const TeamScore: React.FC<{
           ? 'start'
           : 'center'
       }
-      // flexDir={{
-      //   base: direction === 'left' ? 'row-reverse' : 'row',
-      //   md: 'column',
-      // }}
       flexDir="column"
       color={`${colorScheme}.400`}
       flexBasis={0}
