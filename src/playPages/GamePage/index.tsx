@@ -19,6 +19,7 @@ import {
   Show,
   ButtonGroup,
   Button,
+  ToastId,
 } from '@chakra-ui/react';
 import {
   ArrowFatDown,
@@ -31,7 +32,7 @@ import {
   Strategy,
   UsersThree,
 } from 'phosphor-react';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 import DrawerMenu from '../../components/DrawerMenu';
 import { LobbyCodeCard } from '../../components/LobbyCodeCard';
@@ -39,6 +40,7 @@ import PhosphorIcon from '../../components/PhosphorIcon';
 import {
   AUTO_LOOP,
   CardSuitIcons,
+  CardSuitLabels,
   CARD_COLORS,
   Phase,
   TEAM_COLORS,
@@ -79,6 +81,8 @@ const GamePage: React.FC = () => {
   const endGameAlertDisc = useDisclosure();
   const bidsModalDisc = useDisclosure();
   const historyModalDisc = useDisclosure();
+
+  const filterToastRef = useRef<ToastId>();
 
   const { score, scoreModeLabel, leadingTeam, toggleMode, winningTeam } =
     useScore(game);
@@ -490,6 +494,11 @@ const GamePage: React.FC = () => {
                     <Faders size="100%" weight="bold" />
                   </Icon>
                 }
+                drawerButtonProps={{
+                  as: IconButton,
+                  variant: 'ghost',
+                  size: 'lg',
+                }}
                 menuButtonProps={{
                   as: IconButton,
                   variant: 'ghost',
@@ -536,9 +545,57 @@ const GamePage: React.FC = () => {
               </IconButton>
               <IconButton
                 aria-label="Filter Cards"
-                colorScheme={filter < 0 ? 'gray' : 'teal'}
+                colorScheme={
+                  filter < 0
+                    ? 'gray'
+                    : filter === 'playable'
+                    ? 'green'
+                    : CARD_COLORS[filter]
+                }
                 variant={filter < 0 ? 'ghost' : 'solid'}
-                onClick={handleFilter}
+                onClick={() => {
+                  const newFilter = handleFilter();
+                  let filterName = '';
+                  let color = 'green';
+
+                  switch (newFilter) {
+                    case 'playable':
+                      filterName = 'Playable Cards';
+                      break;
+                    case -1:
+                      filterName = 'All Cards';
+                      break;
+                    default:
+                      filterName = `${CardSuitLabels[newFilter]}s`;
+                      color = `${CARD_COLORS[newFilter]}`;
+                      break;
+                  }
+
+                  if (filterToastRef.current) {
+                    toast.close(filterToastRef.current);
+                  }
+
+                  filterToastRef.current = toast({
+                    duration: 1500,
+                    position: 'bottom',
+                    containerStyle: {
+                      marginBottom: '80px',
+                    },
+                    render: () => (
+                      <Flex
+                        alignItems="center"
+                        justifyContent="center"
+                        bg={`${color}.300`}
+                        py={1.5}
+                        borderRadius="md"
+                      >
+                        <Text fontWeight="bold" color={`${color}.900`}>
+                          {filterName}
+                        </Text>
+                      </Flex>
+                    ),
+                  });
+                }}
                 title="Filter Cards"
                 size={{ base: 'md', md: 'lg' }}
               >

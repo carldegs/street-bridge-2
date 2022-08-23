@@ -1,5 +1,5 @@
 import { User } from 'firebase/auth';
-import { Funnel } from 'phosphor-react';
+import { Funnel, StackSimple } from 'phosphor-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import { CardSuit, AUTO_LOOP, CardSuitIcons } from '../../../constants';
@@ -8,11 +8,20 @@ import { SortOrder } from '../../../types';
 
 const useHand = (game?: Game, user?: User) => {
   const [sort, setSort] = useState<SortOrder>('');
-  const [filter, setFilter] = useState<CardSuit | -1>(-1);
+  const [filter, setFilter] = useState<CardSuit | 'playable' | -1>(-1);
   const [showHand, setShowHand] = useState(true);
   const [selectedUser, setSelectedUser] = useState(AUTO_LOOP);
 
-  const FilterIcon = filter < 0 ? Funnel : CardSuitIcons[filter];
+  const FilterIcon = useMemo(() => {
+    switch (filter) {
+      case -1:
+        return Funnel;
+      case 'playable':
+        return StackSimple;
+      default:
+        return CardSuitIcons[filter];
+    }
+  }, [filter]);
 
   const isSpectator = useMemo(() => {
     if (!game || !user) {
@@ -34,6 +43,16 @@ const useHand = (game?: Game, user?: User) => {
 
     return userId;
   }, [game, isSpectator, selectedUser, user]);
+
+  const disableHand = useMemo(
+    () => (!userId ? true : userId !== game?.currPlayerId),
+    [game?.currPlayerId, userId]
+  );
+
+  const disableSuits = useMemo(
+    () => game && game.getPlayerRestrictedSuits(userId),
+    [game, userId]
+  );
 
   const playerCards = useMemo(() => {
     if (!game || !user) {
@@ -57,22 +76,14 @@ const useHand = (game?: Game, user?: User) => {
       });
     }
 
-    if (filter >= 0) {
+    if (filter === 'playable') {
+      cards = cards.filter(({ suit }) => !disableSuits?.includes(suit));
+    } else if (filter >= 0) {
       cards = cards.filter(({ suit }) => suit === filter);
     }
 
     return cards;
-  }, [filter, game, userId, sort, user]);
-
-  const disableHand = useMemo(
-    () => (!userId ? true : userId !== game?.currPlayerId),
-    [game?.currPlayerId, userId]
-  );
-
-  const disableSuits = useMemo(
-    () => game && game.getPlayerRestrictedSuits(userId),
-    [game, userId]
-  );
+  }, [game, user, userId, sort, filter, disableSuits]);
 
   const handleSort = useCallback(() => {
     setSort((s) => {
@@ -88,21 +99,33 @@ const useHand = (game?: Game, user?: User) => {
   }, []);
 
   const handleFilter = useCallback(() => {
-    setFilter((f) => {
-      switch (f) {
-        case -1:
-          return CardSuit.club;
-        case CardSuit.club:
-          return CardSuit.spade;
-        case CardSuit.spade:
-          return CardSuit.heart;
-        case CardSuit.heart:
-          return CardSuit.diamond;
-        case CardSuit.diamond:
-          return -1;
-      }
-    });
-  }, []);
+    let newFilter;
+
+    switch (filter) {
+      case -1:
+        newFilter = 'playable';
+        break;
+      case 'playable':
+        newFilter = CardSuit.club;
+        break;
+      case CardSuit.club:
+        newFilter = CardSuit.spade;
+        break;
+      case CardSuit.spade:
+        newFilter = CardSuit.heart;
+        break;
+      case CardSuit.heart:
+        newFilter = CardSuit.diamond;
+        break;
+      case CardSuit.diamond:
+        newFilter = -1;
+        break;
+    }
+
+    setFilter(newFilter);
+
+    return newFilter;
+  }, [filter]);
 
   const handleShowHand = useCallback(() => {
     setShowHand((s) => !s);

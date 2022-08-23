@@ -210,7 +210,12 @@ export class Game {
       this.bidHistory = [...this.bidHistory, this.bid];
     }
 
-    if (this.bidHistory.filter(({ bid }) => !bid?.value).length >= 3) {
+    const lastBids = this.bidHistory.slice(-3);
+
+    if (
+      lastBids.length === 3 &&
+      lastBids.filter(({ bid }) => !bid?.value).length === 3
+    ) {
       this.phase = Phase.battle;
       this.moveCurrPlayer();
     }
@@ -343,20 +348,6 @@ export class Game {
 
   private moveCurrPlayer() {
     this.currPlayer = (this.currPlayer + 1) % 4;
-
-    if (this.phase === Phase.bidding) {
-      let loop = 0;
-      while (loop < 4) {
-        if (this.getPlayerBidData(this.currPlayerId).isPass) {
-          this.currPlayer = (this.currPlayer + 1) % 4;
-          loop++;
-        } else {
-          return;
-        }
-      }
-
-      throw new Error('All players already passed');
-    }
   }
 
   private isCorrectPhase(phase: Phase) {
