@@ -131,7 +131,8 @@ class Lobby {
 
   public isTeamMember(userId: string, team: Team) {
     if (!this.isMember(userId)) {
-      throw new Error(`User ${userId} not a member.`);
+      console.error(`User ${userId} not a member.`);
+      return false;
     }
 
     return (this.members[userId]?.role as number) === (team as number);
@@ -139,7 +140,7 @@ class Lobby {
 
   public removeMember(userId: string, newHost?: string) {
     if (!this.isMember(userId)) {
-      throw new Error(`User ${userId} not a member.`);
+      console.error(`User ${userId} not a member.`);
     }
 
     if (this.isHost(userId) && this.numMembers > 1 && !newHost) {

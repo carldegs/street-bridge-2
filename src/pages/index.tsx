@@ -8,12 +8,16 @@ import {
   Tooltip,
   useDisclosure,
 } from '@chakra-ui/react';
+import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { Binoculars, Coffee, GitBranch } from 'phosphor-react';
 
 import ContributeModal from '../components/ContributeModal';
 import PhosphorIcon from '../components/PhosphorIcon';
 import useCustomColorMode from '../hooks/useCustomColorMode';
+
+const { publicRuntimeConfig } = getConfig();
+const version = publicRuntimeConfig?.version;
 
 const Home: React.FC = () => {
   const router = useRouter();
@@ -81,7 +85,7 @@ const Home: React.FC = () => {
         justify={{ base: 'center', md: 'space-between' }}
         align="center"
       >
-        <Text pl={{ base: 8, md: 0 }}>v0.1.0</Text>
+        <Text pl={{ base: 8, md: 0 }}>v{version}</Text>
         <HStack>
           <Text>by carldegs</Text>
           <Tooltip label="GitHub Repo">

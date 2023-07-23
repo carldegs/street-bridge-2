@@ -24,6 +24,7 @@ import {
 import {
   ArrowFatDown,
   ArrowFatUp,
+  Backspace,
   Cards,
   Faders,
   HandPalm,
@@ -46,6 +47,8 @@ import {
   TEAM_COLORS,
 } from '../../constants';
 import useCustomColorMode from '../../hooks/useCustomColorMode';
+import LeaveRoomAlert from '../SetupPage/components/LeaveRoomAlert';
+import useSetupPage from '../SetupPage/hooks/useSetupPage';
 import { BidChat } from './components/BidChat';
 import BidsModal from './components/BidsModal';
 import EndGameAlert from './components/EndGameAlert';
@@ -75,7 +78,9 @@ const GamePage: React.FC = () => {
     isUpdating,
     handleDeleteRoom,
   } = useGamePage();
+  const { handleLeaveRoom } = useSetupPage();
   const colorMode = useCustomColorMode();
+  const leaveRoomAlertDisc = useDisclosure();
 
   const playerListModalDisc = useDisclosure();
   const endGameAlertDisc = useDisclosure();
@@ -133,14 +138,22 @@ const GamePage: React.FC = () => {
         hidden: game?.phase !== Phase.battle,
         onClick: historyModalDisc.onOpen,
       },
+      {
+        text: 'Leave Room',
+        icon: <Backspace size="100%" weight="fill" />,
+        hidden: game?.membersData?.[user?.uid]?.role !== 'spectator',
+        onClick: leaveRoomAlertDisc.onOpen,
+      },
     ],
     [
       bidsModalDisc.onOpen,
       colorMode,
       endGameAlertDisc.onOpen,
       game?.host?.uid,
+      game?.membersData,
       game?.phase,
       historyModalDisc.onOpen,
+      leaveRoomAlertDisc.onOpen,
       playerListModalDisc.onOpen,
       user?.uid,
     ]
@@ -237,6 +250,13 @@ const GamePage: React.FC = () => {
         members={game.membersData}
         teamNames={game.teamNames}
         {...playerListModalDisc}
+      />
+      <LeaveRoomAlert
+        onClick={() => {
+          handleLeaveRoom();
+          fetch(user);
+        }}
+        {...leaveRoomAlertDisc}
       />
       <EndGameAlert
         onClick={async () => {

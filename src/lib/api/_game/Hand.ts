@@ -71,6 +71,18 @@ export class Hand {
     return !!this.getCardFromId(id);
   }
 
+  public isMisdeal() {
+    let maxHandValue = 0;
+
+    this.cards.forEach((card) => {
+      if (card.card.value > maxHandValue) {
+        maxHandValue = card.card.value;
+      }
+    });
+
+    return maxHandValue <= 11;
+  }
+
   private getCardFromId(id: string) {
     return this.cards.find((card) => card.card.id === id);
   }

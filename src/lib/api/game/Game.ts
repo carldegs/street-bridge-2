@@ -92,9 +92,14 @@ export class Game {
   ) {
     if (!Object.keys(hands)?.length) {
       const deck = new Deck();
-      deck.shuffle();
+      let newHands: Record<number, Hand>;
 
-      this.hands = deck.distribute();
+      do {
+        deck.shuffle();
+        newHands = deck.distribute();
+      } while (Object.values(newHands).some((hand) => hand.isMisdeal()));
+
+      this.hands = newHands;
     }
   }
 
